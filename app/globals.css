@@ -128,3 +128,110 @@
     @apply font-sans;
   }
 }
+
+@theme inline {
+  --color-outline-variant: #c2c8c2;
+  --color-primary: #173124;
+  --color-surface-bright: #fcf9f8;
+  --color-on-background: #1c1b1b;
+  --color-on-surface: #1c1b1b;
+  --color-secondary-fixed: #ffdbcc;
+  --color-on-tertiary-fixed: #0e1f12;
+  --color-surface-container: #f0eded;
+  --color-secondary-container: #feaa84;
+  --color-on-secondary-fixed-variant: #713619;
+  --color-secondary: #8e4d2e;
+  --color-primary-fixed: #ccead6;
+  --color-on-primary: #ffffff;
+  --color-surface-container-high: #eae7e7;
+  --color-on-secondary: #ffffff;
+  --color-on-tertiary-container: #9fb39f;
+  --color-on-surface-variant: #424844;
+  --color-surface-container-highest: #e5e2e1;
+  --color-primary-container: #2d4739;
+  --color-on-primary-fixed-variant: #324c3e;
+  --color-surface-dim: #dcd9d9;
+  --color-on-secondary-container: #783c1e;
+  --color-inverse-surface: #313030;
+  --color-surface-tint: #496455;
+  --color-on-error: #ffffff;
+  --color-surface-container-low: #f6f3f2;
+  --color-error-container: #ffdad6;
+  --color-on-primary-container: #98b5a3;
+  --color-on-secondary-fixed: #351000;
+  --color-inverse-primary: #b0cdbb;
+  --color-surface-container-lowest: #ffffff;
+  --color-tertiary-container: #344636;
+  --color-on-error-container: #93000a;
+  --color-on-tertiary-fixed-variant: #394b3b;
+  --color-surface-variant: #e5e2e1;
+  --color-outline: #727973;
+  --color-tertiary: #1e3021;
+  --color-secondary-fixed-dim: #ffb695;
+  --color-on-tertiary: #ffffff;
+  --color-on-primary-fixed: #062014;
+  --color-background: #fcf9f8;
+  --color-surface: #fcf9f8;
+  --color-inverse-on-surface: #f3f0ef;
+  --color-primary-fixed-dim: #b0cdbb;
+  --color-tertiary-fixed-dim: #b7ccb7;
+  --color-tertiary-fixed: #d3e8d2;
+  --color-error: #ba1a1a;
+
+  --spacing-xl: 64px;
+  --spacing-container-max: 1280px;
+  --spacing-base: 4px;
+  --spacing-gutter: 24px;
+  --spacing-xs: 8px;
+  --spacing-md: 24px;
+  --spacing-sm: 16px;
+  --spacing-lg: 40px;
+
+  --font-display-md: "Playfair Display", serif;
+  --font-label-sm: "Plus Jakarta Sans", sans-serif;
+  --font-body-lg: "Plus Jakarta Sans", sans-serif;
+  --font-label-md: "Plus Jakarta Sans", sans-serif;
+  --font-headline-lg: "Plus Jakarta Sans", sans-serif;
+  --font-body-md: "Plus Jakarta Sans", sans-serif;
+  --font-display-lg: "Playfair Display", serif;
+  --font-headline-lg-mobile: "Plus Jakarta Sans", sans-serif;
+
+  /* Text Sizes & Line Heights combined via specific utilities if needed, or mapped here */
+  /* We will map the font sizes using --text-* */
+}
+
+@layer utilities {
+  .ambient-shadow-1 { box-shadow: 0 4px 12px rgba(23, 49, 36, 0.02); }
+  .ambient-shadow-2 { box-shadow: 0 12px 24px rgba(23, 49, 36, 0.05); }
+  .glass-panel { background: rgba(252, 249, 248, 0.9); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+
+  /* Hide scrollbar for category filter */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* About page utilities */
+  .bg-warm-gradient {
+    background: linear-gradient(to bottom, rgba(252, 249, 248, 0), rgba(252, 249, 248, 1));
+  }
+  .perspective-card {
+    transition: transform 0.3s ease-out;
+  }
+  .perspective-card:hover {
+    transform: translateY(-8px);
+  }
+
+  /* Font classes mapping the object provided in config */
+  .text-display-md { font-size: 36px; line-height: 44px; font-weight: 700; }
+  .text-label-sm { font-size: 12px; line-height: 16px; letter-spacing: 0.05em; font-weight: 500; }
+  .text-body-lg { font-size: 18px; line-height: 28px; font-weight: 400; }
+  .text-label-md { font-size: 14px; line-height: 20px; letter-spacing: 0.02em; font-weight: 600; }
+  .text-headline-lg { font-size: 28px; line-height: 36px; font-weight: 600; }
+  .text-body-md { font-size: 16px; line-height: 24px; font-weight: 400; }
+  .text-display-lg { font-size: 48px; line-height: 56px; letter-spacing: -0.02em; font-weight: 700; }
+  .text-headline-lg-mobile { font-size: 24px; line-height: 32px; font-weight: 600; }
+}
