@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ThemeToggle } from "../ThemeToggle";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -63,6 +64,7 @@ export default function Navbar() {
         </div>
         {/* Actions */}
         <div className="hidden md:flex items-center gap-md">
+          <ThemeToggle />
           <Link
             href="/login"
             className="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors duration-300"
