@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-export default function PropertyCard({ title, location, price, rating, image }) {
+export default function PropertyCard({ id, title, location, price, rating, image }) {
   return (
     <div className="group flex flex-col bg-surface rounded-xl overflow-hidden ambient-shadow-1 hover:ambient-shadow-2 transition-shadow duration-300 border border-[#E5E0DA]">
       <div className="relative h-64 overflow-hidden">
@@ -43,7 +43,7 @@ export default function PropertyCard({ title, location, price, rating, image }) 
             </span>
           </div>
           <Link
-            href="/booking"
+            href={`/booking/${id || 1}`}
             className="font-label-md text-label-md text-primary underline hover:text-secondary transition-colors"
           >
             View Details
