@@ -102,7 +102,7 @@ export default function NewBooking() {
               {/* Room Item 1 */}
               <label className="flex items-center gap-md p-md rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer border-b border-outline-variant last:border-0 group">
                 <input defaultChecked className="w-5 h-5 accent-primary border-outline-variant cursor-pointer" name="room" type="radio" />
-                <div className="w-16 h-16 rounded overflow-hidden flex-shrink-0 relative">
+                <div className="w-16 h-16 rounded overflow-hidden shrink-0 relative">
                   <Image fill className="object-cover" alt="Master Pine Suite" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_PEOPfZzoAG_bg5-aNopDGbAPXHC2b4pn5UNIdoDTtUB5HMzUzJqz_pMcGMufRPolcYKzQ1OJB8KgASREQj4ac22vntpdhg60t_kxA97V4R00yIQB2HvOjQi8uYHT9Y-SyFsO2bGqafnOj2AYQ4EB7n-JG-ieqgTvP-plpHlNHPRH3OIlK8hZ30GoibE7Id-F7EQQETmgGPkHEZfcrJyaP6Um-8W25sXS_pYWKHUa2eFWCWfOgEot9-rnZ0tuhOgu_u82Ux23bHFO" />
                 </div>
                 <div className="flex-1">
@@ -118,7 +118,7 @@ export default function NewBooking() {
               {/* Room Item 2 */}
               <label className="flex items-center gap-md p-md rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer border-b border-outline-variant last:border-0 group">
                 <input className="w-5 h-5 accent-primary border-outline-variant cursor-pointer" name="room" type="radio" />
-                <div className="w-16 h-16 rounded overflow-hidden flex-shrink-0 relative">
+                <div className="w-16 h-16 rounded overflow-hidden shrink-0 relative">
                   <Image fill className="object-cover" alt="The Attic Nook" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHonSnNHxXeD_B-EYGbTM7QybyGjpRPxQoLfw6QTQQpYeryrJBTkZAxPE4cTtrWBvIpkJJKeBNTKIkSfbe3rlTAIkFY_5iXlU8MrKh2HsR0jjDxKz7KubwgmPv2b-isVh9kLv7tjO0NXnBGGj34k1csLlPjDORNy4ls0Im-7YlI__hkYYCHn7UDcQw7gos09YncsivnShkQ45vm8gZn9EJZ4UkJavMCqO9uB5YvY2SZQZYyfs69-GTt7AenOyv0jeHONwqJm9uWSxp" />
                 </div>
                 <div className="flex-1">
@@ -134,7 +134,7 @@ export default function NewBooking() {
               {/* Room Item 3 */}
               <label className="flex items-center gap-md p-md rounded-lg opacity-50 grayscale cursor-not-allowed border-b border-outline-variant last:border-0">
                 <input disabled className="w-5 h-5 accent-primary border-outline-variant" name="room" type="radio" />
-                <div className="w-16 h-16 rounded overflow-hidden flex-shrink-0 relative">
+                <div className="w-16 h-16 rounded overflow-hidden shrink-0 relative">
                   <Image fill className="object-cover" alt="Stone Hearth Studio" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBntB526KzqXf9CUcvQRjzR9lFzOYL57zo58rv3UUOuHgfYNcF2ZN5muQ0swOepx21kqMRWqKQdOJnr4RlrNSsKAb0w75FSl0BcQnYDbLpBFc-hnH0nPz__26vKJG-I6j7u5joNI9pNW_mzEwcECsQP0X7mtoJoqvN0Qau0F_CI3tqFdEkBha1MFCBVLeIbVpEVpfBFiEkw2Lldv81dHVQdz2e6jWmutBOKzeRQWcB583Ry-azW3HI0D1oXds3-8m3cgqcvK-fYDBsj" />
                 </div>
                 <div className="flex-1">

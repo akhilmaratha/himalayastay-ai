@@ -228,7 +228,7 @@ export default function BookingSuccess() {
             <Image fill className="object-cover transition-transform duration-[2s] group-hover:scale-110" alt="Atmospheric Visual" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBjoigRNqRJPD3q4HBsppTnjF3-5aazwAj5uEUoMzgQ6of8e8rtWWOcI0141PzIxzLcoOfv2_oipwS_XTRoMTtyj8ZVoyIUSI37-txqFvPuTQUmuNvdPYwU4eHjdSmjV35T1oVNFXbH9Tos-W1loOaQ01yEYKeOd7tptPlAe5CrbJyhxW5tBPHxlv-yf9csuxjZyZ6x1HkQcKv2i_fNYdjpm-_Ub7Ex8_3ueuM1mffHk46JMp62udSeS_UVrqZOArROluGZoCBxOpD" />
             <div className="absolute inset-0 bg-primary/20 mix-blend-multiply"></div>
             <div className="absolute inset-0 flex flex-col justify-center items-center text-white text-center p-md">
-              <p className="font-display-md italic opacity-90">"Rooted in Serenity"</p>
+              <p className="font-display-md italic opacity-90">&quot;Rooted in Serenity&quot;</p>
               <p className="text-label-sm uppercase tracking-widest mt-xs">PeakStay Sanctuary</p>
             </div>
           </div>

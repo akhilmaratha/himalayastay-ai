@@ -36,10 +36,10 @@ export default function AdminSidebar() {
           <span className="font-label-md text-label-md">Calendar</span>
         </Link>
         <Link 
-          className={`rounded-lg flex items-center gap-md p-md transition-all duration-200 ${pathname === '/admin/rooms' ? 'bg-primary-container text-on-primary-container font-bold active:scale-95' : 'text-on-surface-variant hover:bg-surface-container-high'}`} 
+          className={`rounded-lg flex items-center gap-md p-md transition-all duration-200 ${pathname.startsWith('/admin/rooms') ? 'bg-primary-container text-on-primary-container font-bold active:scale-95' : 'text-on-surface-variant hover:bg-surface-container-high'}`} 
           href="/admin/rooms"
         >
-          <span className="material-symbols-outlined" style={pathname === '/admin/rooms' ? { fontVariationSettings: "'FILL' 1" } : {}}>bed</span>
+          <span className="material-symbols-outlined" style={pathname.startsWith('/admin/rooms') ? { fontVariationSettings: "'FILL' 1" } : {}}>bed</span>
           <span className="font-label-md text-label-md">Rooms</span>
         </Link>
         <Link 

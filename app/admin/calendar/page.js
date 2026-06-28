@@ -196,7 +196,7 @@ export default function CalendarPage() {
                 </div>
                 <div className="flex flex-1 relative bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTYwIDB2NjRIMS41VjB6IiBmaWxsPSJub25lIiBzdHJva2U9IiNlNWEyZTEiIHN0cm9rZS13aWR0aD0iMSIvPjwvc3ZnPg==')] bg-repeat-x opacity-80">
                   {[...Array(4)].map((_, i) => (
-                    <div key={i} className={`absolute inset-y-0 left-[${i * 60}px] w-[60px] flex items-center justify-center pointer-events-none`} style={{ left: \`\${i * 60}px\` }}>
+                    <div key={i} className="absolute inset-y-0 w-[60px] flex items-center justify-center pointer-events-none" style={{ left: `${i * 60}px` }}>
                       <span className="font-label-sm text-label-sm text-outline-variant">₹12k</span>
                     </div>
                   ))}
