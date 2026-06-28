@@ -1,56 +1,45 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Hero from "../components/home/Hero";
 import FeaturedStayCard from "../components/home/FeaturedStayCard";
 import ExperienceSection from "../components/home/ExperienceSection";
 
-const featuredStays = [
-  {
-    type: "main",
-    title: "The Nanda Devi Heritage House",
-    location: "Munsiyari, Uttarakhand",
-    price: "8,500",
-    rating: "4.96",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDRJ82XCuz61ffspvyYmWD7HRHp3WMXbYuv0hc1rB7vJstpN8SvqDivKbsolQ4E4cfnJDscAaytA_x8lHZ4Huc0Sz4660QMb-F0rIzpmaiGAUpsEOCJBwFnG58bh0X1OpOrz6COAlcyw9MIqbuKDZzoH6G8-vadqAyoc7eB7jfj3TXlff1dNrgNyPROr74cGa_hjV_e1T61sX4a38kmLKgLbOC-ZUxX9DGd59bqRdubUODH6TSCxHxuRQLfq9sHel2kn-A-vm_i3Y1H",
-    colSpanClass: "md:col-span-8",
-  },
-  {
-    type: "side",
-    title: "Whispering Pines Cabin",
-    location: "Jibhi, Himachal",
-    price: "6,200",
-    rating: "4.85",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBjumMPXg7Lbi9hMIQh2MCMZfLUSmyYJAJqSIqQ5j829DNYAvMBKcOZq6Sq5mfUaai2QEGjFDXz_zOIwSpRKHrtQwA0R_vgRyoYnytecmIITbxxjArM4UdoEHH3ifDvl2tQOQ6wgwHdHGFmXfpZGBt-Z3NbINLnbenVSzfObUF1wT8LGQE0AutlbtQdFBnKVuG1JL6FvgsG7Lw3giFJvqkhwPwgBJWwPb3k1KpJ6nTBVdRflO6C7vbxJBwnMC2YHpejZIeJjPx56yfL",
-    colSpanClass: "md:col-span-4",
-  },
-  {
-    type: "standard",
-    title: "Tirthan Riverside Lodge",
-    location: "Tirthan Valley",
-    price: "12,000",
-    rating: "4.92",
-    description:
-      "A luxurious retreat by the river, offering fly fishing and serene valley views.",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCv_sASI_nsHai2fLpngPwDv-DvWhTtolARv7yjf8cGvlfSCa2HXiEhAg8yHPYV8ir1wPzFHUd4AhQuw5C43-lLdnP6mjd8fypiS3McTFmWpbQg3OP_s77BTM-0Q7EDhJmQ5Hr-kw_cFY6Kapnyl4j69FUZBD65CIlxsbY9Hb6g5PCPeBoioftvloUN4gBnIdHpaCfrtdnZaHDkVAMyO3y6VfCvxzmQAILoTjF9_3MeUfHRQgscvjnAjwN4ZVGOetMC5Bu77DdfBGu9",
-    colSpanClass: "md:col-span-4",
-  },
-  {
-    type: "standard",
-    title: "Earth & Sky Mud House",
-    location: "Kaza, Spiti",
-    price: "4,500",
-    rating: "4.78",
-    description:
-      "Authentic local architecture with modern comforts in the cold desert.",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCd9-XkaBnugcHabrVhtYoc-CbkBvWYAhJNBhN5e6rmkuNBPNitiOOoB0VQzotrIBP4KVc19dVklUhoE54DPMFuW_sGMLtkpGJTsejvnbthAIbnKHPpqqI9gIsGwvC0_AUCXAKJF3pTZvSYNbgB0CP4Fcw5T2sNbqIQ_5cSMOJ86wGWbNfnQR6skJZprBTChBNmqsLEIJPjjhtG767wtJ5jWn4YMsyI47pSCb_UvNOJiyw5XLz5wSNjScD_GuMWmOS5D5wnGaryjF5J",
-    colSpanClass: "md:col-span-4",
-  },
-];
-
 export default function Home() {
+  const [featuredStays, setFeaturedStays] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        const res = await fetch("/api/rooms");
+        if (!res.ok) throw new Error("Failed to fetch rooms");
+        const data = await res.json();
+        
+        const layoutConfigs = [
+          { type: "main", colSpanClass: "md:col-span-8" },
+          { type: "side", colSpanClass: "md:col-span-4" },
+          { type: "standard", colSpanClass: "md:col-span-4" },
+          { type: "standard", colSpanClass: "md:col-span-4" },
+        ];
+        
+        const mappedStays = data.slice(0, 4).map((room, index) => ({
+          ...room,
+          type: layoutConfigs[index]?.type || "standard",
+          colSpanClass: layoutConfigs[index]?.colSpanClass || "md:col-span-4",
+        }));
+        
+        setFeaturedStays(mappedStays);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRooms();
+  }, []);
   return (
     <div className="w-full pb-xl">
       <Hero />
@@ -80,9 +69,21 @@ export default function Home() {
           </Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-12 gap-sm md:gap-md auto-rows-[300px] md:auto-rows-[400px]">
-          {featuredStays.map((stay, index) => (
-            <FeaturedStayCard key={index} {...stay} />
-          ))}
+          {loading ? (
+            <div className="md:col-span-12 py-12 text-center text-on-surface-variant font-body-md">
+              <span className="material-symbols-outlined animate-spin text-primary text-display-md mb-4 block">sync</span>
+              Loading featured stays...
+            </div>
+          ) : error ? (
+            <div className="md:col-span-12 py-12 text-center text-error font-body-md">
+              <span className="material-symbols-outlined text-display-md mb-4 block">error</span>
+              Error: {error}
+            </div>
+          ) : (
+            featuredStays.map((stay, index) => (
+              <FeaturedStayCard key={stay.id || index} {...stay} />
+            ))
+          )}
 
           {/* Call to action card (Spans 4 cols) */}
           <div className="md:col-span-4 bg-primary-container rounded-xl p-md flex flex-col justify-center items-center text-center ambient-shadow-2 relative overflow-hidden">
@@ -95,7 +96,7 @@ export default function Home() {
               landscape
             </span>
             <h3 className="font-display-md text-[24px] font-bold text-on-primary mb-2 relative z-10">
-              Can't decide?
+              Can&apos;t decide?
             </h3>
             <p className="font-body-md text-on-primary/80 mb-6 relative z-10">
               Let our local experts design a bespoke itinerary for your
