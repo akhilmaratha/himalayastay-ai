@@ -69,7 +69,13 @@ export default function Navbar() {
             href="/login"
             className="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors duration-300"
           >
-            Host Login
+            Login
+          </Link>
+          <Link
+            href="/signup"
+            className="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors duration-300"
+          >
+            Sign Up
           </Link>
           <Link
             href="/booking"
