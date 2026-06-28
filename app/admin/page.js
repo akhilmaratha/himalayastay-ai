@@ -1,6 +1,28 @@
-import React from 'react';
+"use client";
+
+import React, { useEffect, useState } from 'react';
 
 export default function AdminDashboard() {
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const res = await fetch("/api/bookings");
+        if (!res.ok) throw new Error("Failed to load bookings");
+        const data = await res.json();
+        setBookings(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBookings();
+  }, []);
+
   return (
     <>
       {/* Metric Cards Bento Grid */}
@@ -174,87 +196,45 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/20">
-              <tr className="hover:bg-primary/5 transition-colors group">
-                <td className="px-lg py-md">
-                  <div className="flex items-center gap-md">
-                    <div className="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed-variant font-bold">AS</div>
-                    <div>
-                      <div className="font-bold text-on-surface">Aravind Singh</div>
-                      <div className="text-label-sm text-on-surface-variant">2 Adults</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-lg py-md">
-                  <div className="text-body-md">Oct 12 - Oct 15</div>
-                  <div className="text-label-sm text-on-surface-variant">3 Nights</div>
-                </td>
-                <td className="px-lg py-md">
-                  <span className="px-md py-1 bg-surface-container-highest rounded-full text-label-sm">Pine Cottage 04</span>
-                </td>
-                <td className="px-lg py-md font-bold text-primary">₹24,500</td>
-                <td className="px-lg py-md">
-                  <span className="flex items-center gap-1 text-secondary font-bold text-label-sm">
-                    <span className="w-2 h-2 rounded-full bg-secondary"></span> Confirmed
-                  </span>
-                </td>
-                <td className="px-lg py-md text-right">
-                  <button className="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">more_vert</button>
-                </td>
-              </tr>
-              <tr className="hover:bg-primary/5 transition-colors group">
-                <td className="px-lg py-md">
-                  <div className="flex items-center gap-md">
-                    <div className="w-10 h-10 rounded-full bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed-variant font-bold">ML</div>
-                    <div>
-                      <div className="font-bold text-on-surface">Maya Lehri</div>
-                      <div className="text-label-sm text-on-surface-variant">1 Adult</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-lg py-md">
-                  <div className="text-body-md">Oct 14 - Oct 20</div>
-                  <div className="text-label-sm text-on-surface-variant">6 Nights</div>
-                </td>
-                <td className="px-lg py-md">
-                  <span className="px-md py-1 bg-surface-container-highest rounded-full text-label-sm">Cloud Deck Suite</span>
-                </td>
-                <td className="px-lg py-md font-bold text-primary">₹52,800</td>
-                <td className="px-lg py-md">
-                  <span className="flex items-center gap-1 text-primary font-bold text-label-sm">
-                    <span className="w-2 h-2 rounded-full bg-primary"></span> Arriving Today
-                  </span>
-                </td>
-                <td className="px-lg py-md text-right">
-                  <button className="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">more_vert</button>
-                </td>
-              </tr>
-              <tr className="hover:bg-primary/5 transition-colors group">
-                <td className="px-lg py-md">
-                  <div className="flex items-center gap-md">
-                    <div className="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed-variant font-bold">RT</div>
-                    <div>
-                      <div className="font-bold text-on-surface">Rohan Thapa</div>
-                      <div className="text-label-sm text-on-surface-variant">4 Adults</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-lg py-md">
-                  <div className="text-body-md">Oct 16 - Oct 18</div>
-                  <div className="text-label-sm text-on-surface-variant">2 Nights</div>
-                </td>
-                <td className="px-lg py-md">
-                  <span className="px-md py-1 bg-surface-container-highest rounded-full text-label-sm">Terrace Tent 12</span>
-                </td>
-                <td className="px-lg py-md font-bold text-primary">₹12,000</td>
-                <td className="px-lg py-md">
-                  <span className="flex items-center gap-1 text-on-surface-variant font-bold text-label-sm">
-                    <span className="w-2 h-2 rounded-full bg-outline"></span> Pending
-                  </span>
-                </td>
-                <td className="px-lg py-md text-right">
-                  <button className="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">more_vert</button>
-                </td>
-              </tr>
+              {loading ? (
+                <tr><td colSpan="6" className="text-center py-8">Loading bookings...</td></tr>
+              ) : error ? (
+                <tr><td colSpan="6" className="text-center py-8 text-error">{error}</td></tr>
+              ) : bookings.length === 0 ? (
+                <tr><td colSpan="6" className="text-center py-8">No recent bookings.</td></tr>
+              ) : (
+                bookings.map((booking, idx) => (
+                  <tr key={booking.id || idx} className="hover:bg-primary/5 transition-colors group">
+                    <td className="px-lg py-md">
+                      <div className="flex items-center gap-md">
+                        <div className="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed-variant font-bold">
+                          {booking.user ? booking.user.charAt(0).toUpperCase() : 'G'}
+                        </div>
+                        <div>
+                          <div className="font-bold text-on-surface">{booking.user || "Guest"}</div>
+                          <div className="text-label-sm text-on-surface-variant">2 Adults</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-lg py-md">
+                      <div className="text-body-md">{booking.dates || "N/A"}</div>
+                      <div className="text-label-sm text-on-surface-variant">3 Nights</div>
+                    </td>
+                    <td className="px-lg py-md">
+                      <span className="px-md py-1 bg-surface-container-highest rounded-full text-label-sm">Room {booking.roomId}</span>
+                    </td>
+                    <td className="px-lg py-md font-bold text-primary">₹24,500</td>
+                    <td className="px-lg py-md">
+                      <span className="flex items-center gap-1 text-secondary font-bold text-label-sm">
+                        <span className="w-2 h-2 rounded-full bg-secondary"></span> {booking.status || "Pending"}
+                      </span>
+                    </td>
+                    <td className="px-lg py-md text-right">
+                      <button className="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">more_vert</button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
