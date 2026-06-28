@@ -1,7 +1,26 @@
 "use client";
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 export default function ReviewsPage() {
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const res = await fetch("/api/reviews");
+        if (!res.ok) throw new Error("Failed to load reviews");
+        const data = await res.json();
+        setReviews(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchReviews();
+  }, []);
   return (
     <>
       <style dangerouslySetInnerHTML={{
@@ -86,99 +105,75 @@ export default function ReviewsPage() {
 
         {/* Review List */}
         <div className="space-y-md">
-          {/* Review Card 1 */}
-          <div className="bg-surface rounded-xl p-lg border border-[#E5E0DA] shadow-ambient-1 transition-all hover:shadow-md">
-            <div className="flex flex-col md:flex-row gap-md">
-              {/* Guest Info Col */}
-              <div className="md:w-1/4 shrink-0 border-b md:border-b-0 md:border-r border-surface-container-high pb-4 md:pb-0 pr-0 md:pr-4">
-                <div className="flex items-center gap-sm mb-sm">
-                  <div className="w-12 h-12 rounded-full overflow-hidden bg-surface-variant">
-                    <img alt="Guest" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVaNvDE8NtQwpl7EeA5A7p7govcUK4FGdFFJ3FeVOYlLr_DenQP38pP2mvZUFgFRgpmN7hSxmFd4376QaZ3TP2NgAQjTW2QOvTW23S6QNRXh9FFGzi7R9h0Ps3fnZsFVPO8ed1x3VF_mcuSCueRFozajCopdxZKmmuzXyVmp9NxiFvYyRpQYNHe0_BKjWE7L66qn4D1Ofk0ODaaoVuM01RsQEAQewKrz-Y4J38--PAMP36DbWO2vI_ne3WpyHzrOXLewzXHGhSCcwH" />
-                  </div>
-                  <div>
-                    <h4 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Sarah Jenkins</h4>
-                    <p className="font-label-sm text-label-sm text-on-surface-variant">Stayed Oct 12 - 15</p>
-                  </div>
-                </div>
-                <div className="flex gap-1 text-secondary mb-2">
-                  <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                  <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                  <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                  <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                  <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                </div>
-                <p className="font-label-sm text-label-sm text-outline font-medium">Mountain View Suite</p>
-              </div>
-              
-              {/* Review Content Col */}
-              <div className="md:w-3/4 flex flex-col justify-between">
-                <div>
-                  <h3 className="font-headline-lg-mobile text-headline-lg-mobile text-primary mb-2">"An absolutely serene getaway"</h3>
-                  <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed mb-4">
-                    The views from the suite were breathtaking, but what really stood out was the attention to detail. The heated floors in the morning, the locally sourced tea selection, and the incredible calm of the property. It truly felt like a luxury retreat nestled in the heart of nature. We will absolutely be returning next season.
-                  </p>
-                </div>
-                {/* Action Buttons */}
-                <div className="flex items-center gap-sm mt-4 md:mt-0 justify-end">
-                  <button className="flex items-center gap-2 px-4 py-2 border border-primary-container text-primary-container rounded-lg hover:bg-surface-container-low transition-colors font-label-md text-label-md">
-                    <span className="material-symbols-outlined text-[18px]">reply</span>
-                    Reply
-                  </button>
-                  <button className="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg hover:bg-primary-container transition-colors font-label-md text-label-md">
-                    <span className="material-symbols-outlined text-[18px]">psychology</span>
-                    Analyze with AI
-                  </button>
-                </div>
-              </div>
+          {loading ? (
+            <div className="py-12 text-center text-on-surface-variant font-body-md bg-surface rounded-xl border border-[#E5E0DA]">
+              <span className="material-symbols-outlined animate-spin text-primary text-display-md mb-4 block">sync</span>
+              Loading reviews...
             </div>
-          </div>
-          
-          {/* Review Card 2 */}
-          <div className="bg-surface rounded-xl p-lg border border-[#E5E0DA] shadow-ambient-1 transition-all hover:shadow-md">
-            <div className="flex flex-col md:flex-row gap-md">
-              {/* Guest Info Col */}
-              <div className="md:w-1/4 shrink-0 border-b md:border-b-0 md:border-r border-surface-container-high pb-4 md:pb-0 pr-0 md:pr-4">
-                <div className="flex items-center gap-sm mb-sm">
-                  <div className="w-12 h-12 rounded-full overflow-hidden bg-surface-variant">
-                    <span className="material-symbols-outlined text-surface-tint w-full h-full flex items-center justify-center text-2xl">person</span>
-                  </div>
-                  <div>
-                    <h4 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Michael R.</h4>
-                    <p className="font-label-sm text-label-sm text-on-surface-variant">Stayed Oct 05 - 08</p>
-                  </div>
-                </div>
-                <div className="flex gap-1 text-secondary mb-2">
-                  <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                  <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                  <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                  <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                  <span className="material-symbols-outlined text-[18px]">star</span>
-                </div>
-                <p className="font-label-sm text-label-sm text-outline font-medium">Valley Room 2</p>
-              </div>
-              
-              {/* Review Content Col */}
-              <div className="md:w-3/4 flex flex-col justify-between">
-                <div>
-                  <h3 className="font-headline-lg-mobile text-headline-lg-mobile text-primary mb-2">"Great location, minor issues"</h3>
-                  <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed mb-4">
-                    The architecture of the lodge is stunning and blends perfectly with the landscape. The staff were very accommodating. However, the Wi-Fi in our specific room was a bit spotty during the evening. Not a huge deal since we came to disconnect, but worth noting for business travelers. Overall, a highly curated experience.
-                  </p>
-                </div>
-                {/* Action Buttons */}
-                <div className="flex items-center gap-sm mt-4 md:mt-0 justify-end">
-                  <button className="flex items-center gap-2 px-4 py-2 border border-primary-container text-primary-container rounded-lg hover:bg-surface-container-low transition-colors font-label-md text-label-md">
-                    <span className="material-symbols-outlined text-[18px]">reply</span>
-                    Reply
-                  </button>
-                  <button className="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg hover:bg-primary-container transition-colors font-label-md text-label-md">
-                    <span className="material-symbols-outlined text-[18px]">psychology</span>
-                    Analyze with AI
-                  </button>
-                </div>
-              </div>
+          ) : error ? (
+            <div className="py-12 text-center text-error font-body-md bg-surface rounded-xl border border-[#E5E0DA]">
+              <span className="material-symbols-outlined text-display-md mb-4 block">error</span>
+              {error}
             </div>
-          </div>
+          ) : reviews.length === 0 ? (
+            <div className="py-12 text-center text-on-surface-variant font-body-md bg-surface rounded-xl border border-[#E5E0DA]">
+              No reviews available.
+            </div>
+          ) : (
+            reviews.map((review, idx) => (
+              <div key={review.id || idx} className="bg-surface rounded-xl p-lg border border-[#E5E0DA] shadow-ambient-1 transition-all hover:shadow-md">
+                <div className="flex flex-col md:flex-row gap-md">
+                  {/* Guest Info Col */}
+                  <div className="md:w-1/4 shrink-0 border-b md:border-b-0 md:border-r border-surface-container-high pb-4 md:pb-0 pr-0 md:pr-4">
+                    <div className="flex items-center gap-sm mb-sm">
+                      <div className="w-12 h-12 rounded-full overflow-hidden bg-surface-variant">
+                        <span className="material-symbols-outlined text-surface-tint w-full h-full flex items-center justify-center text-2xl">person</span>
+                      </div>
+                      <div>
+                        <h4 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">{review.user || "Guest"}</h4>
+                        <p className="font-label-sm text-label-sm text-on-surface-variant">Recent Stay</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-1 text-secondary mb-2">
+                      {[...Array(5)].map((_, i) => (
+                        <span key={i} className="material-symbols-outlined text-[18px]" style={i < (review.rating || 5) ? { fontVariationSettings: "'FILL' 1" } : {}}>star</span>
+                      ))}
+                    </div>
+                    <p className="font-label-sm text-label-sm text-outline font-medium">Room {review.roomId}</p>
+                  </div>
+                  
+                  {/* Review Content Col */}
+                  <div className="md:w-3/4 flex flex-col justify-between">
+                    <div>
+                      <h3 className="font-headline-lg-mobile text-headline-lg-mobile text-primary mb-2">&quot;{review.title || "Great Experience"}&quot;</h3>
+                      <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed mb-4">
+                        {review.comment}
+                      </p>
+                    </div>
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-sm mt-4 md:mt-0 justify-end">
+                      <button className="flex items-center gap-2 px-4 py-2 border border-primary-container text-primary-container rounded-lg hover:bg-surface-container-low transition-colors font-label-md text-label-md">
+                        <span className="material-symbols-outlined text-[18px]">reply</span>
+                        Reply
+                      </button>
+                      <button className="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg hover:bg-primary-container transition-colors font-label-md text-label-md" onClick={async () => {
+                        try {
+                          const res = await fetch("/api/ai/analyze-review", { method: "POST" });
+                          const data = await res.json();
+                          alert(`AI Analysis:\nSentiment: ${data.sentiment}\nCategory: ${data.category}\nReply Suggestion: ${data.reply}`);
+                        } catch(e) {
+                          alert("Failed to analyze");
+                        }
+                      }}>
+                        <span className="material-symbols-outlined text-[18px]">psychology</span>
+                        Analyze with AI
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         <div className="mt-lg flex justify-center pb-xl">
