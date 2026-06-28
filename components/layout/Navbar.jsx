@@ -49,12 +49,12 @@ export default function Navbar() {
           >
             Stays
           </Link>
-          <Link
+          {/* <Link
             href="#"
             className="text-on-surface-variant font-medium hover:text-primary transition-colors duration-300"
           >
             Experiences
-          </Link>
+          </Link> */}
           <Link
             href="/about"
             className="text-on-surface-variant font-medium hover:text-primary transition-colors duration-300"
