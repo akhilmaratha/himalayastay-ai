@@ -2,6 +2,7 @@ import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import "./globals.css";
 import { ThemeProvider } from "../components/ThemeProvider";
+import NavigationWrapper from "../components/layout/NavigationWrapper";
 
 export const metadata = {
   title: "Himalayan Stays - Discover Authentic Mountain Stays",
@@ -24,9 +25,9 @@ export default function RootLayout({ children }) {
           enableSystem
           disableTransitionOnChange
         >
-          <Navbar />
-          {children}
-          <Footer />
+          <NavigationWrapper>
+            {children}
+          </NavigationWrapper>
         </ThemeProvider>
       </body>
     </html>
