@@ -1,12 +1,16 @@
-import { rooms } from '../../../src/data/rooms';
+import connectToDatabase from '../../../src/lib/mongodb';
+import Room from '../../../src/models/Room';
 import { successResponse, errorResponse } from '../../../src/lib/response';
 import { withErrorHandler } from '../../../src/middleware/errorHandler';
 
 export const GET = withErrorHandler(async () => {
+  await connectToDatabase();
+  const rooms = await Room.find({});
   return successResponse(rooms);
 });
 
 export const POST = withErrorHandler(async (request) => {
+  await connectToDatabase();
   const body = await request.json();
   const { title, location, price } = body;
   
@@ -14,7 +18,6 @@ export const POST = withErrorHandler(async (request) => {
     return errorResponse("Missing required fields", 400);
   }
   
-  const newRoom = { id: String(Date.now()), ...body };
-  rooms.push(newRoom);
+  const newRoom = await Room.create(body);
   return successResponse(newRoom, 201);
 });
