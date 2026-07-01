@@ -45,31 +45,30 @@ export default function AdminLogin() {
 
   return (
     <>
-      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
-      <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+   
       
       <div className="bg-[#fcf9f8] font-['Plus_Jakarta_Sans',sans-serif] text-[#1c1b1b] min-h-screen flex flex-col relative overflow-hidden">
         {/* Background Layer */}
         <div className="fixed inset-0 z-0">
           <div 
             className="w-full h-full bg-cover bg-center transition-opacity duration-1000 opacity-40" 
-            style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuD1-Fji9Dsxch1SYgUyr8c98MGaKmckrGodnZrDE680hE3Swp-Sqood9QXWxfMHQCKU6I7Riitb77yB9EfMEy69FKe8ooQp6zqdmHZxmOwUtqrIHO-ONcFkbROYFELGnb2vIbTEshYi235_5zyg_ONv47kG_JGjW_U8DVKi8NJY_2LEa0tiywr98ntgbunEMcwd_yr3aeOR4_DhRqD1GfpHcA2GgR_0Kq6ZjuV7vW1bPT3ormOAwb-7EZXGGhadCP2XJqeEmbpGreAG')" }}>
+            style={{ backgroundImage: "url('/screen.png')" }}>
           </div>
           <div className="absolute inset-0 bg-linear-to-b from-transparent via-[#fcf9f8]/20 to-[#fcf9f8]/80"></div>
         </div>
 
         {/* Main Content */}
-        <main className="grow flex items-center justify-center px-6 relative z-10 py-[64px]">
+        <main className="grow flex items-center justify-center px-6 relative z-10 py-xl">
           <div className="w-full max-w-[440px]">
             
             {/* Branding Header */}
-            <div className="text-center mb-[40px]">
+            <div className="text-center mb-lg">
               <h1 className="font-['Playfair_Display',serif] text-[36px] text-[#173124] tracking-tight mb-2">HIMALAYAN STAYS</h1>
-              <p className="text-[#424844] uppercase tracking-[0.1em] text-[14px] font-medium">Property Management Portal</p>
+              <p className="text-[#424844] uppercase tracking-widest text-[14px] font-medium">Property Management Portal</p>
             </div>
             
             {/* Login Card */}
-            <div className="backdrop-blur-[8px] bg-[rgba(252,249,248,0.9)] border border-[#c2c8c2]/30 rounded-xl p-[24px] md:p-[40px] shadow-[0_4px_20px_-2px_rgba(45,71,57,0.05)]">
+            <div className="backdrop-blur-sm bg-[rgba(252,249,248,0.9)] border border-[#c2c8c2]/30 rounded-xl p-[24px] md:p-lg shadow-[0_4px_20px_-2px_rgba(45,71,57,0.05)]">
               <div className="mb-[24px]">
                 <h2 className="font-['Playfair_Display',serif] text-[24px] text-[#173124] mb-1">Welcome Back</h2>
                 <p className="text-[#424844] text-[14px]">Please enter your credentials to access the dashboard.</p>
@@ -93,7 +92,7 @@ export default function AdminLogin() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
-                  <label className="absolute left-0 top-6 text-[#727973] transition-all duration-300 pointer-events-none origin-left peer-focus:-translate-y-[24px] peer-focus:scale-[0.85] peer-focus:text-[#173124] peer-[:not(:placeholder-shown)]:-translate-y-[24px] peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:text-[#173124]" htmlFor="email">Email Address</label>
+                  <label className="absolute left-0 top-6 text-[#727973] transition-all duration-300 pointer-events-none origin-left peer-focus:translate-y-[-24px] peer-focus:scale-[0.85] peer-focus:text-[#173124] peer-[:not(:placeholder-shown)]:translate-y-[-24px] peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:text-[#173124]" htmlFor="email">Email Address</label>
                 </div>
                 
                 {/* Password Input */}
@@ -107,7 +106,7 @@ export default function AdminLogin() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
-                  <label className="absolute left-0 top-6 text-[#727973] transition-all duration-300 pointer-events-none origin-left peer-focus:-translate-y-[24px] peer-focus:scale-[0.85] peer-focus:text-[#173124] peer-[:not(:placeholder-shown)]:-translate-y-[24px] peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:text-[#173124]" htmlFor="password">Password</label>
+                  <label className="absolute left-0 top-6 text-[#727973] transition-all duration-300 pointer-events-none origin-left peer-focus:translate-y-[-24px] peer-focus:scale-[0.85] peer-focus:text-[#173124] peer-[:not(:placeholder-shown)]:translate-y-[-24px] peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:text-[#173124]" htmlFor="password">Password</label>
                   <button 
                     type="button" 
                     className="absolute right-0 top-6 text-[#727973] hover:text-[#173124] transition-colors"
@@ -118,15 +117,7 @@ export default function AdminLogin() {
                     </span>
                   </button>
                 </div>
-                
-                {/* Actions Row */}
-                <div className="flex items-center justify-between pt-2">
-                  <label className="flex items-center space-x-2 cursor-pointer group">
-                    <input className="rounded-sm border-[#c2c8c2] text-[#173124] focus:ring-[#173124] h-4 w-4" type="checkbox" />
-                    <span className="text-[14px] text-[#424844] group-hover:text-[#173124] transition-colors">Remember me</span>
-                  </label>
-                  <a className="text-[14px] text-[#8e4d2e] hover:text-[#173124] transition-colors underline underline-offset-4 decoration-[#c2c8c2]" href="#">Forgot Password?</a>
-                </div>
+              
                 
                 {/* Submit Button */}
                 <button 
@@ -149,7 +140,7 @@ export default function AdminLogin() {
               </form>
               
               {/* Security Assurance */}
-              <div className="mt-[40px] pt-[24px] border-t border-[#c2c8c2]/30 flex items-center justify-center gap-2 text-[#727973]">
+              <div className="mt-lg pt-[24px] border-t border-[#c2c8c2]/30 flex items-center justify-center gap-2 text-[#727973]">
                 <span className="material-symbols-outlined text-[16px] [font-variation-settings:'FILL'_1,'wght'_400,'GRAD'_0,'opsz'_24] inline-block leading-none normal-case tracking-normal whitespace-nowrap [direction:ltr]">lock</span>
                 <p className="uppercase tracking-widest text-[10px]">Secure Encrypted Connection</p>
               </div>
@@ -158,19 +149,9 @@ export default function AdminLogin() {
         </main>
         
         {/* Footer */}
-        <footer className="relative z-10 w-full py-[40px] px-6">
-          <div className="max-w-[1280px] mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-[#727973] text-[12px]">
-            <p>© 2024 Himalayan Homestays. All rights reserved.</p>
-            <div className="flex items-center gap-[24px]">
-              <a className="hover:text-[#173124] transition-colors flex items-center gap-1" href="#">
-                <span className="material-symbols-outlined text-[14px] [font-variation-settings:'FILL'_0,'wght'_400,'GRAD'_0,'opsz'_24] inline-block leading-none normal-case tracking-normal whitespace-nowrap [direction:ltr]">public</span>
-                Back to Public Site
-              </a>
-              <a className="hover:text-[#173124] transition-colors flex items-center gap-1" href="#">
-                <span className="material-symbols-outlined text-[14px] [font-variation-settings:'FILL'_0,'wght'_400,'GRAD'_0,'opsz'_24] inline-block leading-none normal-case tracking-normal whitespace-nowrap [direction:ltr]">help_outline</span>
-                Support
-              </a>
-            </div>
+        <footer className="relative z-10 w-full py-lg px-6">
+          <div className="max-w-max mx-auto flex flex-col md:flex-row justify-center items-center gap-4 text-[#727973] text-[12px]">
+            <p>© {new Date().getFullYear()} Himalayan Homestays. All rights reserved.</p>
           </div>
         </footer>
       </div>

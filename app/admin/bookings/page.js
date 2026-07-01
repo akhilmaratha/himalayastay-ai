@@ -166,7 +166,7 @@ export default function BookingsManagement() {
                 <td className="px-gutter py-md text-center">
                   <div className="flex justify-center gap-xs opacity-0 group-hover:opacity-100 transition-opacity">
                     <button className="p-xs hover:bg-surface-container-high rounded-full text-on-surface-variant transition-colors"><span className="material-symbols-outlined text-[20px]">visibility</span></button>
-                    <button className="p-xs hover:bg-surface-container-high rounded-full text-on-surface-variant transition-colors"><span class="material-symbols-outlined text-[20px]">edit</span></button>
+                    <button className="p-xs hover:bg-surface-container-high rounded-full text-on-surface-variant transition-colors"><span className="material-symbols-outlined text-[20px]">edit</span></button>
                   </div>
                 </td>
               </tr>
