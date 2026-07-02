@@ -4,24 +4,44 @@ import React, { useEffect, useState } from 'react';
 
 export default function AdminDashboard() {
   const [bookings, setBookings] = useState([]);
+  const [rooms, setRooms] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchBookings = async () => {
+    const fetchDashboardData = async () => {
       try {
-        const res = await fetch("/api/bookings");
-        if (!res.ok) throw new Error("Failed to load bookings");
-        const data = await res.json();
-        setBookings(data);
+        const [resBookings, resRooms, resReviews] = await Promise.all([
+          fetch("/api/bookings"),
+          fetch("/api/rooms"),
+          fetch("/api/reviews")
+        ]);
+        if (!resBookings.ok || !resRooms.ok || !resReviews.ok) {
+          throw new Error("Failed to load dashboard data");
+        }
+        const dataBookings = await resBookings.json();
+        const dataRooms = await resRooms.json();
+        const dataReviews = await resReviews.json();
+        setBookings(dataBookings);
+        setRooms(dataRooms);
+        setReviews(dataReviews);
       } catch (err) {
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
-    fetchBookings();
+    fetchDashboardData();
   }, []);
+
+  // Calculations
+  const totalBookings = bookings.length;
+  const totalRooms = rooms.length;
+  const totalReviews = reviews.length;
+  const averageRating = totalReviews > 0 ? (reviews.reduce((acc, curr) => acc + (curr.rating || 5), 0) / totalReviews).toFixed(1) : "0.0";
+  const occupancyRate = totalRooms > 0 ? Math.min(100, Math.round((bookings.filter(b => b.status !== "Cancelled").length / totalRooms) * 100)) : 0;
+
 
   return (
     <>
@@ -40,7 +60,7 @@ export default function AdminDashboard() {
           </div>
           <div className="mt-md">
             <span className="text-on-surface-variant text-label-md">Total Bookings</span>
-            <h3 className="font-display-md text-display-md text-primary mt-xs">182</h3>
+            <h3 className="font-display-md text-display-md text-primary mt-xs">{totalBookings}</h3>
           </div>
         </div>
 
@@ -56,8 +76,8 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="mt-md">
-            <span className="text-on-surface-variant text-label-md">Monthly Revenue</span>
-            <h3 className="font-display-md text-display-md text-primary mt-xs">₹1,42,800</h3>
+            <span className="text-on-surface-variant text-label-md">Total Rooms</span>
+            <h3 className="font-display-md text-display-md text-primary mt-xs">{totalRooms}</h3>
           </div>
         </div>
 
@@ -71,7 +91,7 @@ export default function AdminDashboard() {
           </div>
           <div className="mt-md">
             <span className="text-on-surface-variant text-label-md">Occupancy Rate</span>
-            <h3 className="font-display-md text-display-md text-primary mt-xs">88%</h3>
+            <h3 className="font-display-md text-display-md text-primary mt-xs">{occupancyRate}%</h3>
           </div>
         </div>
 
@@ -87,7 +107,7 @@ export default function AdminDashboard() {
           </div>
           <div className="mt-md">
             <span className="text-on-surface-variant text-label-md">Average Rating</span>
-            <h3 className="font-display-md text-display-md text-primary mt-xs">4.9<span className="text-label-md font-normal text-on-surface-variant">/5</span></h3>
+            <h3 className="font-display-md text-display-md text-primary mt-xs">{averageRating}<span className="text-label-md font-normal text-on-surface-variant">/5 ({totalReviews} Reviews)</span></h3>
           </div>
         </div>
       </section>
