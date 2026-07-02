@@ -1,9 +1,65 @@
-import React from 'react';
+"use client";
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
 export default function BookingsManagement() {
-  return (
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Edit Modal & Toast State
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [currentBooking, setCurrentBooking] = useState(null);
+  const [statusInput, setStatusInput] = useState('');
+  
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+  };
+
+  const fetchBookings = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/bookings');
+      if (!res.ok) throw new Error('Failed to load bookings');
+      const data = await res.json();
+      setBookings(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBookings();
+  }, []);
+
+  const openEditModal = (booking) => {
+    setCurrentBooking(booking);
+    setStatusInput(booking.status || 'Pending');
+    setIsEditOpen(true);
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`/api/bookings/${currentBooking._id || currentBooking.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: statusInput })
+      });
+      if (!res.ok) throw new Error('Failed to update status');
+      await fetchBookings();
+      setIsEditOpen(false);
+      showToast('Booking status updated successfully');
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  };
     <>
       {/* Header Section */}
       <div className="flex justify-between items-end mb-lg">
@@ -53,169 +109,60 @@ export default function BookingsManagement() {
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/30">
-              {/* Row 1 */}
-              <tr className="hover:bg-primary/5 transition-colors group">
-                <td className="px-gutter py-md">
-                  <div className="flex items-center gap-sm">
-                    <div className="w-10 h-10 rounded-full bg-tertiary-container overflow-hidden relative">
-                      <Image fill className="object-cover" alt="Ananya R." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwigS1NUC2ia-H2WkDpgJUCu1c3CTfNIix-VoV3Ayj8vbQrZ1SBY9jMkhtxIKYtKGUht2_jr4pkH5daKpsvJlkrZcvh7mXP9kMM7y_oyW2qPDYIL4w5AEttMfvUBRAJ6bjWrq9pBew5o-UPkCBRN7-zxe8JveuUKHHeqKlNSQd26xVW-onz2zprGUaRlkoE_nwXaVsNidlRZ5wDoVvn8rXsSoB1P9txDF6NpS9OCfORWMr98FFA6-gkbk53DtwzEnaIpveMoMm5EXT" />
-                    </div>
-                    <div>
-                      <p className="font-headline-lg-mobile text-on-surface">Ananya R.</p>
-                      <p className="text-label-sm text-on-surface-variant">#BK-9421</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-gutter py-md">
-                  <p className="text-on-surface font-medium">Mountain View Suite</p>
-                  <p className="text-label-sm text-on-surface-variant">Leh Sanctuary Lodge</p>
-                </td>
-                <td className="px-gutter py-md text-on-surface font-body-md">
-                  May 12 - May 16
-                </td>
-                <td className="px-gutter py-md">
-                  <span className="px-sm py-1 rounded-full text-[11px] font-bold uppercase bg-surface-container-high text-on-surface-variant">Website</span>
-                </td>
-                <td className="px-gutter py-md">
-                  <span className="inline-flex items-center gap-1.5 px-sm py-1 rounded-full text-[11px] font-bold uppercase bg-green-100 text-green-800 border border-green-200">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-600"></span>
-                    Confirmed
-                  </span>
-                </td>
-                <td className="px-gutter py-md text-right font-headline-lg-mobile text-primary">
-                  ₹42,500
-                </td>
-                <td className="px-gutter py-md text-center">
-                  <div className="flex justify-center gap-xs opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="p-xs hover:bg-surface-container-high rounded-full text-on-surface-variant transition-colors"><span className="material-symbols-outlined text-[20px]">visibility</span></button>
-                    <button className="p-xs hover:bg-surface-container-high rounded-full text-on-surface-variant transition-colors"><span className="material-symbols-outlined text-[20px]">edit</span></button>
-                  </div>
-                </td>
-              </tr>
-              {/* Row 2 */}
-              <tr className="hover:bg-primary/5 transition-colors group">
-                <td className="px-gutter py-md">
-                  <div className="flex items-center gap-sm">
-                    <div className="w-10 h-10 rounded-full bg-secondary-container overflow-hidden relative">
-                      <Image fill className="object-cover" alt="Vikram S." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAU1dF52PgIdEvZSIwf4PY8C9EsV1JYxZkos5BxsrhNSzI2mzBAmkJW9uxOjQ8OfLOWvSirSUMS1piF7jZM1UzFhBUrXOP2zzRV025M8gwaMbBUbsqswi6DM5BiIC1hh51OCTcBgE7vCJAj7LUJeKaLyzT3nzi88WN9_ObBoXvs64-12UnQLaWwBDZnfBkGZ3KuaKFT-RrHXKsVIFXC24Cf3GXATvdljzfqMB7AIpdz02FsXsCTLrna1SLtcOCZ5fhv2H7pU4TJw4k3" />
-                    </div>
-                    <div>
-                      <p className="font-headline-lg-mobile text-on-surface">Vikram S.</p>
-                      <p className="text-label-sm text-on-surface-variant">#BK-9428</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-gutter py-md">
-                  <p className="text-on-surface font-medium">Standard Forest Cabin</p>
-                  <p className="text-label-sm text-on-surface-variant">Nubra Valley Retreat</p>
-                </td>
-                <td className="px-gutter py-md text-on-surface font-body-md">
-                  May 14 - May 17
-                </td>
-                <td className="px-gutter py-md">
-                  <span className="px-sm py-1 rounded-full text-[11px] font-bold uppercase bg-primary-fixed text-on-primary-fixed-variant">Direct</span>
-                </td>
-                <td className="px-gutter py-md">
-                  <span className="inline-flex items-center gap-1.5 px-sm py-1 rounded-full text-[11px] font-bold uppercase bg-blue-100 text-blue-800 border border-blue-200">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
-                    Checked In
-                  </span>
-                </td>
-                <td className="px-gutter py-md text-right font-headline-lg-mobile text-primary">
-                  ₹28,000
-                </td>
-                <td className="px-gutter py-md text-center">
-                  <div className="flex justify-center gap-xs opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="p-xs hover:bg-surface-container-high rounded-full text-on-surface-variant transition-colors"><span className="material-symbols-outlined text-[20px]">visibility</span></button>
-                    <button className="p-xs hover:bg-surface-container-high rounded-full text-on-surface-variant transition-colors"><span className="material-symbols-outlined text-[20px]">edit</span></button>
-                  </div>
-                </td>
-              </tr>
-              {/* Row 3 */}
-              <tr className="hover:bg-primary/5 transition-colors group">
-                <td className="px-gutter py-md">
-                  <div className="flex items-center gap-sm">
-                    <div className="w-10 h-10 rounded-full bg-primary-container overflow-hidden relative">
-                      <Image fill className="object-cover" alt="Meera K." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCXCEqM1L3tDVTPFl9MRGN0srK75Tj5oF3Y8PiNYNAGiO-8YJOF_GuLwP1kLnJHHNAmurfEC0EhqohLvlUEw4gvMQynT3CFxHxf51d2UEkqg7C7W_kT4A4be4lBMl-rqxR3D4sVXnvvm62QQhClzvWWJEXTE8UMs-mHxEV8a-OzWzqfVG38FIe1ypx--MOJSiwkLh07v4ZarcncpWzDwdbcCwkzLR3QE7MDF6g3q8mDOSUmk3o73sfva1mQc5FiisRgnrRXV-vf36Q" />
-                    </div>
-                    <div>
-                      <p className="font-headline-lg-mobile text-on-surface">Meera K.</p>
-                      <p className="text-label-sm text-on-surface-variant">#BK-9433</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-gutter py-md">
-                  <p className="text-on-surface font-medium">Honeymoon Cottage</p>
-                  <p className="text-label-sm text-on-surface-variant">Leh Sanctuary Lodge</p>
-                </td>
-                <td className="px-gutter py-md text-on-surface font-body-md">
-                  May 18 - May 22
-                </td>
-                <td className="px-gutter py-md">
-                  <span className="px-sm py-1 rounded-full text-[11px] font-bold uppercase bg-surface-container-high text-on-surface-variant">Website</span>
-                </td>
-                <td className="px-gutter py-md">
-                  <span className="inline-flex items-center gap-1.5 px-sm py-1 rounded-full text-[11px] font-bold uppercase bg-amber-100 text-amber-800 border border-amber-200">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
-                    Pending
-                  </span>
-                </td>
-                <td className="px-gutter py-md text-right font-headline-lg-mobile text-primary">
-                  ₹64,200
-                </td>
-                <td className="px-gutter py-md text-center">
-                  <div className="flex justify-center gap-xs opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="p-xs hover:bg-surface-container-high rounded-full text-on-surface-variant transition-colors"><span className="material-symbols-outlined text-[20px]">visibility</span></button>
-                    <button className="p-xs hover:bg-surface-container-high rounded-full text-on-surface-variant transition-colors"><span className="material-symbols-outlined text-[20px]">edit</span></button>
-                  </div>
-                </td>
-              </tr>
-              {/* Row 4 */}
-              <tr className="hover:bg-primary/5 transition-colors group">
-                <td className="px-gutter py-md">
-                  <div className="flex items-center gap-sm">
-                    <div className="w-10 h-10 rounded-full bg-on-tertiary-container overflow-hidden relative">
-                      <Image fill className="object-cover" alt="Rahul & Sona" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDasogMW7SFxO5mIb2jQ42nNs9s0ZEiem26GkY8A4G6V8cRwnp9Do5TG-exL6tstiycVCVCIE9JJlSifUcwM4jwOxIpKnrgdh7aJvw0QjCfCfEr1eGDSrwpWebj5-RoN9_Eo5-MRbz8deqB7Z_0_huTNGaOaypHBKlZAmq_O1nPMHd-DJG5riR9x8IaZbQsuCCAMXtq4sOjtp4yoLTD29bIN21NEyKFP1rQ5gW1dfdon5EKjprbvraCpxB_x9qsnB62MHJiznYSNk9N" />
-                    </div>
-                    <div>
-                      <p className="font-headline-lg-mobile text-on-surface">Rahul & Sona</p>
-                      <p className="text-label-sm text-on-surface-variant">#BK-9441</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-gutter py-md">
-                  <p className="text-on-surface font-medium">Deluxe King Room</p>
-                  <p className="text-label-sm text-on-surface-variant">Pangong View Camp</p>
-                </td>
-                <td className="px-gutter py-md text-on-surface font-body-md">
-                  June 02 - June 05
-                </td>
-                <td className="px-gutter py-md">
-                  <span className="px-sm py-1 rounded-full text-[11px] font-bold uppercase bg-surface-container-high text-on-surface-variant">Website</span>
-                </td>
-                <td className="px-gutter py-md">
-                  <span className="inline-flex items-center gap-1.5 px-sm py-1 rounded-full text-[11px] font-bold uppercase bg-green-100 text-green-800 border border-green-200">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-600"></span>
-                    Confirmed
-                  </span>
-                </td>
-                <td className="px-gutter py-md text-right font-headline-lg-mobile text-primary">
-                  ₹35,800
-                </td>
-                <td className="px-gutter py-md text-center">
-                  <div className="flex justify-center gap-xs opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="p-xs hover:bg-surface-container-high rounded-full text-on-surface-variant transition-colors"><span className="material-symbols-outlined text-[20px]">visibility</span></button>
-                    <button className="p-xs hover:bg-surface-container-high rounded-full text-on-surface-variant transition-colors"><span className="material-symbols-outlined text-[20px]">edit</span></button>
-                  </div>
-                </td>
-              </tr>
+              {loading ? (
+                <tr><td colSpan="7" className="text-center py-8">Loading bookings...</td></tr>
+              ) : error ? (
+                <tr><td colSpan="7" className="text-center py-8 text-error">{error}</td></tr>
+              ) : bookings.length === 0 ? (
+                <tr><td colSpan="7" className="text-center py-8">No bookings found.</td></tr>
+              ) : (
+                bookings.map((booking) => (
+                  <tr key={booking._id || booking.id} className="hover:bg-primary/5 transition-colors group">
+                    <td className="px-gutter py-md">
+                      <div className="flex items-center gap-sm">
+                        <div className="w-10 h-10 rounded-full bg-primary-container overflow-hidden relative flex items-center justify-center text-primary font-bold">
+                          {booking.user ? booking.user.charAt(0) : 'G'}
+                        </div>
+                        <div>
+                          <p className="font-headline-lg-mobile text-on-surface">{booking.user || 'Guest'}</p>
+                          <p className="text-label-sm text-on-surface-variant">#{String(booking._id || booking.id).slice(-4)}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-gutter py-md">
+                      <p className="text-on-surface font-medium">Room ID: {booking.roomId || 'N/A'}</p>
+                    </td>
+                    <td className="px-gutter py-md text-on-surface font-body-md">
+                      {booking.dates || 'N/A'}
+                    </td>
+                    <td className="px-gutter py-md">
+                      <span className="px-sm py-1 rounded-full text-[11px] font-bold uppercase bg-surface-container-high text-on-surface-variant">Website</span>
+                    </td>
+                    <td className="px-gutter py-md">
+                      <span className={`inline-flex items-center gap-1.5 px-sm py-1 rounded-full text-[11px] font-bold uppercase ${booking.status === 'Confirmed' ? 'bg-green-100 text-green-800 border-green-200' : booking.status === 'Cancelled' ? 'bg-red-100 text-red-800 border-red-200' : 'bg-amber-100 text-amber-800 border-amber-200'} border`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${booking.status === 'Confirmed' ? 'bg-green-600' : booking.status === 'Cancelled' ? 'bg-red-600' : 'bg-amber-600'}`}></span>
+                        {booking.status}
+                      </span>
+                    </td>
+                    <td className="px-gutter py-md text-right font-headline-lg-mobile text-primary">
+                      ₹{booking.totalPrice || 0}
+                    </td>
+                    <td className="px-gutter py-md text-center">
+                      <div className="flex justify-center gap-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button className="p-xs hover:bg-surface-container-high rounded-full text-on-surface-variant transition-colors"><span className="material-symbols-outlined text-[20px]">visibility</span></button>
+                        <button onClick={() => openEditModal(booking)} className="p-xs hover:bg-surface-container-high rounded-full text-on-surface-variant transition-colors"><span className="material-symbols-outlined text-[20px]">edit</span></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
         
         {/* Pagination */}
         <div className="px-gutter py-md bg-surface-container-low flex items-center justify-between border-t border-outline-variant/30">
-          <p className="text-label-sm text-on-surface-variant">Showing 1 to 4 of 24 reservations</p>
+          <p className="text-label-sm text-on-surface-variant">Showing 1 to {bookings.length} of {bookings.length} reservations</p>
           <div className="flex items-center gap-xs">
             <button className="w-10 h-10 rounded-lg border border-outline-variant flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors">
               <span className="material-symbols-outlined text-[18px]">chevron_left</span>
@@ -277,6 +224,37 @@ export default function BookingsManagement() {
       <Link href="/admin/bookings/new" className="fixed bottom-lg right-lg w-14 h-14 rounded-full bg-primary text-on-primary shadow-2xl flex items-center justify-center hover:scale-110 transition-transform duration-300 z-50 md:hidden">
         <span className="material-symbols-outlined">add</span>
       </Link>
+
+      {/* Edit Status Modal */}
+      {isEditOpen && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
+          <div className="bg-surface p-xl rounded-xl w-full max-w-sm shadow-lg border border-outline-variant/30">
+            <h3 className="text-headline-md font-display-md text-primary mb-md">Update Status</h3>
+            <form onSubmit={handleEditSubmit} className="flex flex-col gap-sm">
+              <select 
+                value={statusInput} 
+                onChange={(e) => setStatusInput(e.target.value)} 
+                className="p-sm border rounded w-full"
+              >
+                <option value="Pending">Pending</option>
+                <option value="Confirmed">Confirmed</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+              <div className="flex justify-end gap-sm mt-md">
+                <button type="button" onClick={() => setIsEditOpen(false)} className="px-md py-sm bg-surface-container-high rounded text-on-surface">Cancel</button>
+                <button type="submit" className="px-md py-sm bg-primary text-white rounded">Update</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast.show && (
+        <div className={`fixed bottom-4 right-4 p-md rounded shadow-lg text-white font-label-md ${toast.type === 'error' ? 'bg-error' : 'bg-primary'}`}>
+          {toast.message}
+        </div>
+      )}
     </>
   );
 }
