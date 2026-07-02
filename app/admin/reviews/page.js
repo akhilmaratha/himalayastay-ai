@@ -56,10 +56,10 @@ export default function ReviewsPage() {
               <span className="material-symbols-outlined text-primary-container">forum</span>
             </div>
             <div>
-              <p className="font-display-md text-display-md text-primary">1,248</p>
+              <p className="font-display-md text-display-md text-primary">{reviews.length}</p>
               <p className="font-label-sm text-label-sm text-primary-container mt-1 flex items-center gap-1">
                 <span className="material-symbols-outlined text-[14px]">arrow_upward</span>
-                12% this month
+                All time
               </p>
             </div>
           </div>
@@ -80,7 +80,7 @@ export default function ReviewsPage() {
               </div>
             </div>
             <div className="relative z-10">
-              <p className="font-display-md text-display-md text-primary">4.9</p>
+              <p className="font-display-md text-display-md text-primary">{reviews.length > 0 ? (reviews.reduce((acc, cur) => acc + (cur.rating || 5), 0) / reviews.length).toFixed(1) : "0.0"}</p>
               <p className="font-label-sm text-label-sm text-on-surface-variant mt-1">Based on all time</p>
             </div>
           </div>
@@ -158,7 +158,11 @@ export default function ReviewsPage() {
                       </button>
                       <button className="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg hover:bg-primary-container transition-colors font-label-md text-label-md" onClick={async () => {
                         try {
-                          const res = await fetch("/api/ai/analyze-review", { method: "POST" });
+                          const res = await fetch("/api/ai/analyze-review", { 
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ comment: review.comment })
+                          });
                           const data = await res.json();
                           alert(`AI Analysis:\nSentiment: ${data.sentiment}\nCategory: ${data.category}\nReply Suggestion: ${data.reply}`);
                         } catch(e) {
