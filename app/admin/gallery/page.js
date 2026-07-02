@@ -1,7 +1,21 @@
 "use client";
-import React from 'react';
+import React, { useState } from 'react';
 
 export default function GalleryPage() {
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleUpload = async () => {
+    setIsUploading(true);
+    try {
+      const res = await fetch('/api/gallery', { method: 'POST' });
+      if (!res.ok) throw new Error('Failed to upload photo');
+      alert('Photo uploaded successfully!');
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
   return (
     <>
       <style dangerouslySetInnerHTML={{
@@ -18,9 +32,13 @@ export default function GalleryPage() {
             <h2 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mb-xs md:hidden">Gallery</h2>
             <p className="font-body-lg text-body-lg text-on-surface-variant">Manage the visual narrative of your property.</p>
           </div>
-          <button className="bg-primary-container text-on-primary-container font-label-md text-label-md px-md py-sm rounded-full flex items-center justify-center gap-xs hover:bg-primary-container/90 transition-colors shadow-sm">
+          <button 
+            onClick={handleUpload}
+            disabled={isUploading}
+            className="bg-primary-container text-on-primary-container font-label-md text-label-md px-md py-sm rounded-full flex items-center justify-center gap-xs hover:bg-primary-container/90 transition-colors shadow-sm"
+          >
             <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 0" }}>upload</span>
-            Upload Photos
+            {isUploading ? 'Uploading...' : 'Upload Photos'}
           </button>
         </div>
 

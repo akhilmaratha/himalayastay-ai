@@ -1,7 +1,21 @@
 "use client";
-import React from 'react';
+import React, { useState } from 'react';
 
 export default function PropertyProfilePage() {
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const res = await fetch('/api/profile', { method: 'PUT' });
+      if (!res.ok) throw new Error('Failed to update profile');
+      alert('Profile updated successfully!');
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
   return (
     <>
       <style dangerouslySetInnerHTML={{
@@ -30,8 +44,12 @@ export default function PropertyProfilePage() {
             <button className="px-6 py-3 rounded-lg border border-outline text-on-surface font-label-md text-label-md hover:bg-surface-container transition-colors duration-200">
               View Live Listing
             </button>
-            <button className="px-6 py-3 rounded-lg bg-primary-container text-on-primary-container font-label-md text-label-md hover:bg-primary hover:text-on-primary transition-colors duration-200 shadow-sm">
-              Save Changes
+            <button 
+              onClick={handleSave}
+              disabled={isSaving}
+              className="px-6 py-3 rounded-lg bg-primary-container text-on-primary-container font-label-md text-label-md hover:bg-primary hover:text-on-primary transition-colors duration-200 shadow-sm"
+            >
+              {isSaving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </div>

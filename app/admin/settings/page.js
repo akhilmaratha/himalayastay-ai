@@ -1,7 +1,22 @@
 "use client";
-import React from 'react';
+import React, { useState } from 'react';
 
 export default function SettingsPage() {
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setIsSaving(true);
+    try {
+      const res = await fetch('/api/settings', { method: 'PUT' });
+      if (!res.ok) throw new Error('Failed to update settings');
+      alert('Settings updated successfully!');
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
   return (
     <>
       <style dangerouslySetInnerHTML={{
@@ -73,7 +88,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <form className="space-y-6">
+                <form className="space-y-6" onSubmit={handleSave}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="relative group-input border-b border-outline-variant hover:border-primary transition-colors">
                       <input className="w-full bg-transparent border-none px-0 py-2 pt-6 focus:ring-0 text-body-md text-on-surface" id="firstName" placeholder=" " type="text" defaultValue="Rahul" />
@@ -93,7 +108,13 @@ export default function SettingsPage() {
                     <label className="absolute left-0 top-4 text-outline transition-all duration-200 pointer-events-none font-label-md" htmlFor="bio">Bio</label>
                   </div>
                   <div className="flex justify-end pt-4">
-                    <button className="px-6 py-2 bg-primary text-on-primary font-label-md rounded-lg hover:bg-primary-container transition-colors" type="button">Save Changes</button>
+                    <button 
+                      disabled={isSaving}
+                      className="px-6 py-2 bg-primary text-on-primary font-label-md rounded-lg hover:bg-primary-container transition-colors" 
+                      type="submit"
+                    >
+                      {isSaving ? 'Saving...' : 'Save Changes'}
+                    </button>
                   </div>
                 </form>
               </div>
