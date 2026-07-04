@@ -5,6 +5,7 @@ import Link from "next/link";
 import Hero from "../components/home/Hero";
 import FeaturedStayCard from "../components/home/FeaturedStayCard";
 import ExperienceSection from "../components/home/ExperienceSection";
+import Image from "next/image";
 
 export default function Home() {
   const [featuredStays, setFeaturedStays] = useState([]);
@@ -27,6 +28,7 @@ export default function Home() {
         
         const mappedStays = data.slice(0, 4).map((room, index) => ({
           ...room,
+          image: room.images && room.images.length > 0 ? room.images[0].url : "https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=2070&auto=format&fit=crop",
           type: layoutConfigs[index]?.type || "standard",
           colSpanClass: layoutConfigs[index]?.colSpanClass || "md:col-span-4",
         }));
@@ -185,7 +187,9 @@ export default function Home() {
           </div>
           <div className="md:w-1/2 w-full relative">
             <div className="aspect-4/3 rounded-xl overflow-hidden relative z-10 ambient-shadow-2">
-              <img
+              <Image
+              width={100}
+              height={150}
                 alt="Smiling local host"
                 className="w-full h-full object-cover"
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuA3Ctot0Z1loExdjdQYbZVq9RQgjTt_48d6YGqpi6y4xHenSkPRG3QG6hUoaQUZkuMoi7Pxn0eVjpvjsTBzCLh1fxu5UWiGO2PVxLvRp54xACP2TYMeAVvpApA0o7NAKQmBx1GMHnAeUZNdSb2kaNpm-aqjyQ3nju8hLqhabiImIZex9E1IA38MCWNKJkfzD51SsbKaOpHD-M9Jy94rKR_dHGRXtU1Y9Mms50tLpy1XsYAiMxBhguEL3VJvwtKIZbF1QrM6Im0kprdL"

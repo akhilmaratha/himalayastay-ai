@@ -20,8 +20,8 @@ export default function BookingsManagement() {
     setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
   };
 
-  const fetchBookings = async () => {
-    setLoading(true);
+  const fetchBookings = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     try {
       const res = await fetch('/api/bookings');
       if (!res.ok) throw new Error('Failed to load bookings');
@@ -35,7 +35,7 @@ export default function BookingsManagement() {
   };
 
   useEffect(() => {
-    fetchBookings();
+    fetchBookings(false);
   }, []);
 
   const openEditModal = (booking) => {
@@ -60,6 +60,8 @@ export default function BookingsManagement() {
       showToast(err.message, 'error');
     }
   };
+
+  return (
     <>
       {/* Header Section */}
       <div className="flex justify-between items-end mb-lg">
@@ -257,4 +259,5 @@ export default function BookingsManagement() {
       )}
     </>
   );
+
 }

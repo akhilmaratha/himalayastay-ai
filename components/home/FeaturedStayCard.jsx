@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link";
-
+import Image from "next/image"
 export default function FeaturedStayCard({
   type = "standard",
   image,
@@ -11,14 +11,17 @@ export default function FeaturedStayCard({
   rating,
   colSpanClass,
   description,
+  slug,
 }) {
   if (type === "main" || type === "side") {
     return (
       <Link
-        href="#"
+        href={`/property/${slug}`}
         className={`${colSpanClass} group relative rounded-xl overflow-hidden bg-surface-container-low ambient-shadow-1 block`}
       >
-        <img
+        <Image
+        width={100}
+        height={150}
           alt={title}
           className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           src={image}
@@ -62,11 +65,14 @@ export default function FeaturedStayCard({
 
   // standard type
   return (
-    <div
-      className={`${colSpanClass} group bg-surface rounded-xl border border-surface-variant overflow-hidden ambient-shadow-1 flex flex-col hover:border-outline-variant transition-colors`}
+    <Link
+      href={`/property/${slug}`}
+      className={`${colSpanClass} group bg-surface rounded-xl border border-surface-variant overflow-hidden ambient-shadow-1 flex-col hover:border-outline-variant transition-colors block`}
     >
       <div className="relative h-48 overflow-hidden">
-        <img
+        <Image
+        width={150}
+        height={150}
           alt={title}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           src={image}
@@ -112,6 +118,6 @@ export default function FeaturedStayCard({
           </p>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

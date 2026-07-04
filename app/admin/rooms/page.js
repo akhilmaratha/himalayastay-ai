@@ -1,16 +1,17 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 export default function RoomsPage() {
+  const router = useRouter();
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // Modal and Form States
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [currentRoom, setCurrentRoom] = useState(null);
   const [formData, setFormData] = useState({ title: '', price: '', capacity: '', location: '', status: 'Available', type: 'Boutique Stay' });
   
   // Toast State
@@ -21,8 +22,8 @@ export default function RoomsPage() {
     setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
   };
 
-  const fetchRooms = async () => {
-    setLoading(true);
+  const fetchRooms = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     try {
       const res = await fetch('/api/rooms');
       if (!res.ok) throw new Error('Failed to load rooms');
@@ -62,34 +63,9 @@ export default function RoomsPage() {
     }
   };
 
-  const openEditModal = (room) => {
-    setCurrentRoom(room);
-    setFormData({
-      title: room.title || '',
-      price: room.price || '',
-      capacity: room.capacity || '',
-      location: room.location || '',
-      status: room.status || 'Available',
-      type: room.type || 'Boutique Stay'
-    });
-    setIsEditOpen(true);
-  };
-
-  const handleEditSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await fetch(`/api/rooms/${currentRoom._id || currentRoom.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, price: Number(formData.price), capacity: Number(formData.capacity) })
-      });
-      if (!res.ok) throw new Error('Failed to update room');
-      await fetchRooms();
-      setIsEditOpen(false);
-      showToast('Room updated successfully');
-    } catch (err) {
-      showToast(err.message, 'error');
-    }
+  const openEditPage = (room) => {
+    const id = room._id || room.id;
+    router.push(`/admin/rooms/new?editId=${id}`);
   };
 
   const handleDelete = async (id) => {
@@ -103,6 +79,8 @@ export default function RoomsPage() {
       showToast(err.message, 'error');
     }
   };
+
+  return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `
         .tonal-row:nth-child(even) {
@@ -119,10 +97,10 @@ export default function RoomsPage() {
             <h2 className="font-display-lg text-display-lg text-primary tracking-tight">Room Management</h2>
             <p className="text-on-surface-variant font-body-lg mt-xs">Oversee and optimize your boutique inventory across all locations.</p>
           </div>
-          <button onClick={() => setIsAddOpen(true)} className="flex items-center gap-sm bg-primary text-white px-xl py-md rounded-lg font-label-md hover:scale-[1.02] active:scale-95 transition-all duration-200 ambient-shadow">
+          <Link href="/admin/rooms/new" className="flex items-center gap-sm bg-primary text-white px-xl py-md rounded-lg font-label-md hover:scale-[1.02] active:scale-95 transition-all duration-200 ambient-shadow">
             <span className="material-symbols-outlined">add_circle</span>
             <span>Add New Room</span>
-          </button>
+          </Link>
         </div>
         
         {/* Filters & Controls Section */}
@@ -180,13 +158,16 @@ export default function RoomsPage() {
                 ) : error ? (
                   <tr><td colSpan="6" className="text-center py-8 text-error">{error}</td></tr>
                 ) : rooms.length === 0 ? (
-                  <tr><td colSpan="6" className="text-center py-8">No rooms found.</td></tr>
+                  <tr><td colSpan="6" className="text-center py-8">No rooms yet.</td></tr>
                 ) : (
                   rooms.map((room) => (
                     <tr key={room._id || room.id} className="tonal-row group hover:bg-primary-container/5 transition-colors cursor-pointer">
                       <td className="px-md py-md">
                         <div className="flex items-center gap-md">
-                          <img className="w-12 h-12 rounded-lg object-cover" alt={room.title} src={room.image || "https://lh3.googleusercontent.com/aida-public/AB6AXuAW2P9m0D_fbdJew7NQz7RNxeXBVy9FzoKXcBO1xRHre3eLc8yS20gVeujS0IBTF9YhsGX3LynbUZ-VzUt6a6-um2e9o-JFI7fL6UpPpCoWbQiBwKGMFzkYVheFj4V_q1TRsapk8v8mjl4OZe6L_THED34cNT2bDeGtbtm4UZtygTFHn3aqGjMbMW5MpB1Bq4Y4QBn5WYt9-1usvVLQcI7gl1SuyqfbHY6NTd2sypvucWDkX4K49qc1EPXu3xlvSr3AHZrmGv6wheNX"}/>
+                          <Image
+                          width={150}
+                          height={150}
+                          className="w-12 h-12 rounded-lg object-cover" alt={room.title} src={room.image || "https://lh3.googleusercontent.com/aida-public/AB6AXuAW2P9m0D_fbdJew7NQz7RNxeXBVy9FzoKXcBO1xRHre3eLc8yS20gVeujS0IBTF9YhsGX3LynbUZ-VzUt6a6-um2e9o-JFI7fL6UpPpCoWbQiBwKGMFzkYVheFj4V_q1TRsapk8v8mjl4OZe6L_THED34cNT2bDeGtbtm4UZtygTFHn3aqGjMbMW5MpB1Bq4Y4QBn5WYt9-1usvVLQcI7gl1SuyqfbHY6NTd2sypvucWDkX4K49qc1EPXu3xlvSr3AHZrmGv6wheNX"}/>
                           <div>
                             <p className="font-bold">{room.title}</p>
                             <p className="text-label-sm text-on-surface-variant">{room.location}</p>
@@ -213,9 +194,9 @@ export default function RoomsPage() {
                       </td>
                       <td className="px-md py-md text-right">
                         <div className="flex items-center justify-end gap-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => openEditModal(room)} className="p-xs text-on-surface-variant hover:text-primary transition-colors">
-                            <span className="material-symbols-outlined">edit</span>
-                          </button>
+                          <button onClick={() => openEditPage(room)} className="p-xs text-on-surface-variant hover:text-primary transition-colors">
+                          <span className="material-symbols-outlined font-light text-icon-sm">edit</span>
+                        </button>
                           <button onClick={() => handleDelete(room._id || room.id)} className="p-xs text-on-surface-variant hover:text-error transition-colors">
                             <span className="material-symbols-outlined">delete</span>
                           </button>
@@ -283,20 +264,20 @@ export default function RoomsPage() {
 
       {/* Add Room Modal */}
       {isAddOpen && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
-          <div className="bg-surface p-xl rounded-xl w-full max-w-md shadow-lg border border-outline-variant/30">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-surface p-xl rounded-xl w-[90vw] max-w-[500px] shadow-lg border border-outline-variant/30">
             <h3 className="text-headline-md font-display-md text-primary mb-md">Add New Room</h3>
             <form onSubmit={handleAddSubmit} className="flex flex-col gap-sm">
-              <input required name="title" value={formData.title} onChange={handleInputChange} placeholder="Room Title" className="p-sm border rounded" />
-              <input required name="location" value={formData.location} onChange={handleInputChange} placeholder="Location" className="p-sm border rounded" />
-              <select name="type" value={formData.type} onChange={handleInputChange} className="p-sm border rounded">
+              <input required name="title" value={formData.title} onChange={handleInputChange} placeholder="Room Title" className="w-full p-sm border border-outline-variant rounded bg-surface" />
+              <input required name="location" value={formData.location} onChange={handleInputChange} placeholder="Location" className="w-full p-sm border border-outline-variant rounded bg-surface" />
+              <select name="type" value={formData.type} onChange={handleInputChange} className="w-full p-sm border border-outline-variant rounded bg-surface">
                 <option value="Boutique Stay">Boutique Stay</option>
                 <option value="Homestay">Homestay</option>
                 <option value="Eco-Lodge">Eco-Lodge</option>
               </select>
-              <input required type="number" name="capacity" value={formData.capacity} onChange={handleInputChange} placeholder="Capacity (Guests)" className="p-sm border rounded" />
-              <input required type="number" name="price" value={formData.price} onChange={handleInputChange} placeholder="Price per night (₹)" className="p-sm border rounded" />
-              <select name="status" value={formData.status} onChange={handleInputChange} className="p-sm border rounded">
+              <input required type="number" name="capacity" value={formData.capacity} onChange={handleInputChange} placeholder="Capacity (Guests)" className="w-full p-sm border border-outline-variant rounded bg-surface" />
+              <input required type="number" name="price" value={formData.price} onChange={handleInputChange} placeholder="Price per night (₹)" className="w-full p-sm border border-outline-variant rounded bg-surface" />
+              <select name="status" value={formData.status} onChange={handleInputChange} className="w-full p-sm border border-outline-variant rounded bg-surface">
                 <option value="Available">Available</option>
                 <option value="Occupied">Occupied</option>
                 <option value="Maintenance">Maintenance</option>
@@ -310,34 +291,7 @@ export default function RoomsPage() {
         </div>
       )}
 
-      {/* Edit Room Modal */}
-      {isEditOpen && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
-          <div className="bg-surface p-xl rounded-xl w-full max-w-md shadow-lg border border-outline-variant/30">
-            <h3 className="text-headline-md font-display-md text-primary mb-md">Edit Room</h3>
-            <form onSubmit={handleEditSubmit} className="flex flex-col gap-sm">
-              <input required name="title" value={formData.title} onChange={handleInputChange} placeholder="Room Title" className="p-sm border rounded" />
-              <input required name="location" value={formData.location} onChange={handleInputChange} placeholder="Location" className="p-sm border rounded" />
-              <select name="type" value={formData.type} onChange={handleInputChange} className="p-sm border rounded">
-                <option value="Boutique Stay">Boutique Stay</option>
-                <option value="Homestay">Homestay</option>
-                <option value="Eco-Lodge">Eco-Lodge</option>
-              </select>
-              <input required type="number" name="capacity" value={formData.capacity} onChange={handleInputChange} placeholder="Capacity (Guests)" className="p-sm border rounded" />
-              <input required type="number" name="price" value={formData.price} onChange={handleInputChange} placeholder="Price per night (₹)" className="p-sm border rounded" />
-              <select name="status" value={formData.status} onChange={handleInputChange} className="p-sm border rounded">
-                <option value="Available">Available</option>
-                <option value="Occupied">Occupied</option>
-                <option value="Maintenance">Maintenance</option>
-              </select>
-              <div className="flex justify-end gap-sm mt-md">
-                <button type="button" onClick={() => setIsEditOpen(false)} className="px-md py-sm bg-surface-container-high rounded text-on-surface">Cancel</button>
-                <button type="submit" className="px-md py-sm bg-primary text-white rounded">Save Changes</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+
 
       {/* Toast */}
       {toast.show && (
