@@ -3,6 +3,7 @@ import User from '../../../../src/models/User';
 import bcrypt from 'bcryptjs';
 import { successResponse, errorResponse } from '../../../../src/lib/response';
 import { z } from 'zod';
+import { checkRateLimit } from '../../../../src/lib/rateLimit';
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -12,6 +13,11 @@ const registerSchema = z.object({
 
 export async function POST(request) {
   try {
+    const rateLimit = checkRateLimit(request);
+    if (!rateLimit.success) {
+      return errorResponse("Too many registration attempts, please try again later", 429);
+    }
+
     await connectToDatabase();
     const body = await request.json();
     

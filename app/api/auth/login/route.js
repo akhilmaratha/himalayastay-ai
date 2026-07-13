@@ -5,6 +5,7 @@ import { SignJWT } from 'jose';
 import { successResponse, errorResponse } from '../../../../src/lib/response';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
+import { checkRateLimit } from '../../../../src/lib/rateLimit';
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -17,6 +18,11 @@ const JWT_SECRET = new TextEncoder().encode(
 
 export async function POST(request) {
   try {
+    const rateLimit = checkRateLimit(request);
+    if (!rateLimit.success) {
+      return errorResponse("Too many login attempts, please try again later", 429);
+    }
+
     await connectToDatabase();
     const body = await request.json();
     
