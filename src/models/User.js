@@ -10,8 +10,10 @@ const userSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
-    password: { type: String, required: true },
+    password: { type: String },
     role: { type: String, default: 'user', enum: ['user', 'admin'] },
+    provider: { type: String, default: 'credentials' },
+    image: { type: String },
   },
   { timestamps: true }
 );
