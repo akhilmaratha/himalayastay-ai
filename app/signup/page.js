@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 
 export default function Signup() {
   const router = useRouter();
@@ -203,6 +204,7 @@ export default function Signup() {
             {/* Social Logins */}
             <div className="grid grid-cols-1 gap-sm w-full">
               <button
+                onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
                 className="flex items-center justify-center gap-xs py-2 px-4 border border-outline-variant rounded-lg hover:bg-surface-container-low transition-colors text-on-surface font-label-md text-label-md"
                 type="button"
               >
