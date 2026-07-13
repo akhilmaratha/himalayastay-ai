@@ -50,18 +50,29 @@ export async function middleware(request) {
 
   // API Route Protection
   if (path.startsWith('/api/') && !path.startsWith('/api/auth')) {
-    const token = request.cookies.get('token')?.value;
+    // Keep GET public where appropriate (rooms, reviews)
+    const isPublicGet = request.method === 'GET' && (path.startsWith('/api/rooms') || path.startsWith('/api/reviews'));
 
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    if (!isPublicGet) {
+      const token = request.cookies.get('token')?.value;
 
-    try {
-      await jwtVerify(token, JWT_SECRET);
-      // Let the request proceed, we will handle method-specific authorization in API routes or Feature 5
-      return NextResponse.next();
-    } catch (error) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      if (!token) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+
+      try {
+        const { payload } = await jwtVerify(token, JWT_SECRET);
+        
+        // Protect Admin APIs (Secure POST, PUT, DELETE for rooms/upload)
+        const isAdminApi = path.startsWith('/api/rooms') || path.startsWith('/api/upload');
+        if (isAdminApi && ['POST', 'PUT', 'DELETE'].includes(request.method)) {
+          if (payload.role !== 'admin') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+          }
+        }
+      } catch (error) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
     }
   }
 
