@@ -1,7 +1,43 @@
-import React from "react";
+"use client";
+import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Login() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        // JWT is stored in HTTP-only cookie by the backend
+        router.push("/dashboard");
+        router.refresh();
+      } else {
+        setError(data.error || "Login failed");
+      }
+    } catch (err) {
+      setError("An error occurred. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="bg-background text-on-background min-h-screen flex font-body-md pt-20">
       {/* Left Side: Image Canvas */}
@@ -47,7 +83,14 @@ export default function Login() {
               Log in to access your bookings and host dashboard.
             </p>
           </div>
-          <form action="#" className="space-y-md" method="POST">
+
+          {error && (
+            <div className="mb-md p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-md">
             {/* Email Input */}
             <div className="relative pt-sm border-b border-outline-variant focus-within:border-primary transition-colors duration-300">
               <input
@@ -57,6 +100,8 @@ export default function Login() {
                 placeholder=" "
                 required
                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
               <label
                 className="absolute left-0 top-3 font-body-md text-body-md text-on-surface-variant transition-all duration-200 pointer-events-none origin-left peer-focus:-translate-y-6 peer-focus:scale-85 peer-focus:text-primary peer-[:not(:placeholder-shown)]:-translate-y-6 peer-[:not(:placeholder-shown)]:scale-85"
@@ -74,6 +119,8 @@ export default function Login() {
                 placeholder=" "
                 required
                 type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
               <label
                 className="absolute left-0 top-3 font-body-md text-body-md text-on-surface-variant transition-all duration-200 pointer-events-none origin-left peer-focus:-translate-y-6 peer-focus:scale-85 peer-focus:text-primary peer-[:not(:placeholder-shown)]:-translate-y-6 peer-[:not(:placeholder-shown)]:scale-85"
@@ -111,10 +158,11 @@ export default function Login() {
             </div> */}
             {/* Submit Button */}
             <button
-              className="w-full bg-primary text-on-primary font-label-md text-label-md py-3 px-6 rounded-lg hover:bg-primary-container transition-colors duration-300 ambient-shadow-1 flex items-center justify-center gap-xs mt-lg"
+              className="w-full bg-primary text-on-primary font-label-md text-label-md py-3 px-6 rounded-lg hover:bg-primary-container transition-colors duration-300 ambient-shadow-1 flex items-center justify-center gap-xs mt-lg disabled:opacity-50"
               type="submit"
+              disabled={loading}
             >
-              Log In
+              {loading ? "Logging in..." : "Log In"}
               <span className="material-symbols-outlined text-[18px]" data-icon="arrow_forward">
                 arrow_forward
               </span>
