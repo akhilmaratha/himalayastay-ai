@@ -76,9 +76,37 @@ export async function middleware(request) {
     }
   }
 
+  // Frontend Protected Routes
+  const isProtectedFrontendRoute = 
+    path.startsWith('/dashboard') || 
+    path.startsWith('/rooms') || 
+    path.startsWith('/bookings') ||
+    path.startsWith('/booking');
+
+  if (isProtectedFrontendRoute) {
+    const token = request.cookies.get('token')?.value;
+
+    if (!token) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+
+    try {
+      await jwtVerify(token, JWT_SECRET);
+    } catch (error) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/:path*'],
+  matcher: [
+    '/admin/:path*', 
+    '/api/:path*', 
+    '/dashboard/:path*', 
+    '/rooms/:path*', 
+    '/bookings/:path*',
+    '/booking/:path*'
+  ],
 };
