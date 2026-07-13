@@ -2,15 +2,26 @@ import connectToDatabase from '../../../../src/lib/mongodb';
 import User from '../../../../src/models/User';
 import bcrypt from 'bcryptjs';
 import { successResponse, errorResponse } from '../../../../src/lib/response';
+import { z } from 'zod';
+
+const registerSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters")
+});
 
 export async function POST(request) {
   try {
     await connectToDatabase();
-    const { name, email, password } = await request.json();
-
-    if (!name || !email || !password) {
-      return errorResponse("Name, email, and password are required", 400);
+    const body = await request.json();
+    
+    // Validate with Zod
+    const validationResult = registerSchema.safeParse(body);
+    if (!validationResult.success) {
+      return errorResponse(validationResult.error.errors[0].message, 400);
     }
+
+    const { name, email, password } = validationResult.data;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {

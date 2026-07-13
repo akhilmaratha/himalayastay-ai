@@ -4,6 +4,12 @@ import bcrypt from 'bcryptjs';
 import { SignJWT } from 'jose';
 import { successResponse, errorResponse } from '../../../../src/lib/response';
 import { cookies } from 'next/headers';
+import { z } from 'zod';
+
+const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required")
+});
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'fallback_secret_for_development_only'
@@ -12,11 +18,15 @@ const JWT_SECRET = new TextEncoder().encode(
 export async function POST(request) {
   try {
     await connectToDatabase();
-    const { email, password } = await request.json();
-
-    if (!email || !password) {
-      return errorResponse("Email and password are required", 400);
+    const body = await request.json();
+    
+    // Validate with Zod
+    const validationResult = loginSchema.safeParse(body);
+    if (!validationResult.success) {
+      return errorResponse(validationResult.error.errors[0].message, 400);
     }
+
+    const { email, password } = validationResult.data;
 
     const user = await User.findOne({ email });
     if (!user) {
