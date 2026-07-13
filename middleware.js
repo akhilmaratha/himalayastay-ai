@@ -48,9 +48,26 @@ export async function middleware(request) {
     }
   }
 
+  // API Route Protection
+  if (path.startsWith('/api/') && !path.startsWith('/api/auth')) {
+    const token = request.cookies.get('token')?.value;
+
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    try {
+      await jwtVerify(token, JWT_SECRET);
+      // Let the request proceed, we will handle method-specific authorization in API routes or Feature 5
+      return NextResponse.next();
+    } catch (error) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin/:path*', '/api/:path*'],
 };
