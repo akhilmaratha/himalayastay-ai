@@ -1,11 +1,34 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 
 export default function DashboardLayout({ children }) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      await signOut({ redirect: false });
+      showToast("Logged out successfully! Redirecting...", "success");
+      setTimeout(() => {
+        router.push("/");
+        router.refresh();
+      }, 1500);
+    } catch (error) {
+      showToast("Failed to logout", "error");
+    }
+  };
 
   return (
     <div className="flex max-w-container-max mx-auto min-h-screen pt-20">
@@ -67,6 +90,13 @@ export default function DashboardLayout({ children }) {
             <span className="material-symbols-outlined">help</span>
             Support
           </Link> */}
+          <button 
+            onClick={handleLogout}
+            className="flex items-center gap-sm p-sm text-error hover:bg-surface-container-high rounded-lg transition-colors duration-200 w-full text-left font-label-md"
+          >
+            <span className="material-symbols-outlined">logout</span>
+            Logout
+          </button>
         </div>
       </aside>
 
@@ -88,6 +118,13 @@ export default function DashboardLayout({ children }) {
           <span className="font-label-sm text-label-sm">Profile</span>
         </Link>
       </nav>
+
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className={`fixed bottom-4 right-4 p-md rounded shadow-lg text-white font-label-md z-50 ${toast.type === 'error' ? 'bg-error' : 'bg-primary'}`}>
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }

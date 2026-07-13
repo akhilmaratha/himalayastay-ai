@@ -3,9 +3,18 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ThemeToggle } from "../ThemeToggle";
+import { signOut } from "next-auth/react";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,6 +28,33 @@ export default function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("/api/auth/status");
+        const data = await res.json();
+        setIsAuthenticated(data.isAuthenticated);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    checkAuth();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      await signOut({ redirect: false });
+      showToast("Logged out successfully! Redirecting...", "success");
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 1500);
+    } catch (error) {
+      console.error("Logout failed", error);
+      showToast("Failed to logout", "error");
+    }
+  };
 
   return (
     <nav
@@ -65,18 +101,29 @@ export default function Navbar() {
         {/* Actions */}
         <div className="hidden md:flex items-center gap-md">
           <ThemeToggle />
-          <Link
-            href="/login"
-            className="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors duration-300"
-          >
-            Login
-          </Link>
-          <Link
-            href="/signup"
-            className="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors duration-300"
-          >
-            Sign Up
-          </Link>
+          {!isAuthenticated ? (
+            <>
+              <Link
+                href="/login"
+                className="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors duration-300"
+              >
+                Login
+              </Link>
+              <Link
+                href="/signup"
+                className="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors duration-300"
+              >
+                Sign Up
+              </Link>
+            </>
+          ) : (
+            <button
+              onClick={handleLogout}
+              className="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors duration-300"
+            >
+              Logout
+            </button>
+          )}
           <Link
             href="/booking"
             className="bg-primary-container text-on-primary px-6 py-3 rounded-lg font-label-md text-label-md hover:bg-primary transition-colors duration-300 ambient-shadow-1"
@@ -94,6 +141,13 @@ export default function Navbar() {
           </span>
         </button>
       </div>
+      
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className={`fixed bottom-4 right-4 p-md rounded shadow-lg text-white font-label-md z-50 ${toast.type === 'error' ? 'bg-error' : 'bg-primary'}`}>
+          {toast.message}
+        </div>
+      )}
     </nav>
   );
 }

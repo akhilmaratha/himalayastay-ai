@@ -10,6 +10,12 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,9 +32,11 @@ export default function Login() {
       const data = await res.json();
 
       if (res.ok) {
-        // JWT is stored in HTTP-only cookie by the backend
-        router.push("/dashboard");
-        router.refresh();
+        showToast("Login successful! Redirecting...", "success");
+        setTimeout(() => {
+          router.push("/dashboard");
+          router.refresh();
+        }, 1500);
       } else {
         setError(data.error || "Login failed");
       }
@@ -228,6 +236,13 @@ export default function Login() {
           </Link>
         </div>
       </div>
+
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className={`fixed bottom-4 right-4 p-md rounded shadow-lg text-white font-label-md z-50 ${toast.type === 'error' ? 'bg-error' : 'bg-primary'}`}>
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }

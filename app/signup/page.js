@@ -12,6 +12,12 @@ export default function Signup() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,7 +36,10 @@ export default function Signup() {
       const data = await res.json();
 
       if (res.ok) {
-        router.push("/login");
+        showToast("Registration successful! Redirecting to login...", "success");
+        setTimeout(() => {
+          router.push("/login");
+        }, 1500);
       } else {
         setError(data.error || "Registration failed");
       }
@@ -232,7 +241,7 @@ export default function Signup() {
           </form>
 
           {/* Sign Up Link */}
-          <p className="mt-5 text-center font-body-md text-body-md text-on-surface-variant">
+          <p className="mt-xl text-center font-body-md text-body-md text-on-surface-variant">
             Already have an account?{" "}
             <Link
               className="font-label-md text-label-md text-primary hover:text-primary-container hover:underline transition-all"
@@ -242,7 +251,28 @@ export default function Signup() {
             </Link>
           </p>
         </div>
+        {/* Footer Links for standalone page */}
+        <div className="mt-lg flex gap-md font-label-sm text-label-sm text-on-surface-variant opacity-70">
+          <Link className="hover:text-primary transition-colors" href="#">
+            Privacy Policy
+          </Link>
+          <Link className="hover:text-primary transition-colors" href="#">
+            Terms of Service
+          </Link>
+          <Link className="hover:text-primary transition-colors" href="#">
+            Contact Support
+          </Link>
+        </div>
       </div>
-    </div>
+
+      {/* Toast Notification */ }
+  {
+    toast.show && (
+      <div className={`fixed bottom-4 right-4 p-md rounded shadow-lg text-white font-label-md z-50 ${toast.type === 'error' ? 'bg-error' : 'bg-primary'}`}>
+        {toast.message}
+      </div>
+    )
+  }
+    </div >
   );
 }
