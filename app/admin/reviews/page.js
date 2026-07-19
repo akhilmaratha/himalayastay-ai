@@ -198,13 +198,84 @@ export default function ReviewsPage() {
                           {review.comment}
                         </p>
                         
-                        {/* Success Response Rendering (Basic) */}
+                        {/* AI Analysis Result */}
                         {aiData && (
-                          <div className="mt-4 p-4 bg-surface-container-lowest rounded-lg border border-outline-variant">
-                            <h4 className="font-label-md text-primary mb-2">AI Analysis Result</h4>
-                            <pre className="text-xs text-on-surface-variant overflow-x-auto">
-                              {JSON.stringify(aiData, null, 2)}
-                            </pre>
+                          <div className="mt-4 p-lg bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm animate-in fade-in slide-in-from-top-4">
+                            <div className="flex items-center gap-xs mb-md border-b border-surface-container-high pb-sm">
+                              <span className="material-symbols-outlined text-primary">psychology</span>
+                              <h4 className="font-headline-sm text-headline-sm text-primary">AI Insights & Action Plan</h4>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-md mb-md">
+                              <div>
+                                <p className="font-label-sm text-on-surface-variant mb-1 uppercase tracking-wider">Sentiment</p>
+                                <p className="font-body-lg font-medium" style={{ color: aiData.sentiment?.toLowerCase() === 'positive' ? '#2e7d32' : aiData.sentiment?.toLowerCase() === 'negative' ? '#c62828' : '#e65100' }}>
+                                  {aiData.sentiment || "Neutral"}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="font-label-sm text-on-surface-variant mb-1 uppercase tracking-wider">Suggested Rating</p>
+                                <div className="flex items-center gap-1 font-body-lg font-medium text-secondary">
+                                  <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                                  {aiData.rating || "N/A"}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-md mb-md">
+                              {aiData.positivePoints && aiData.positivePoints.length > 0 && (
+                                <div className="bg-surface rounded-lg p-md border border-outline-variant">
+                                  <div className="flex items-center gap-xs text-[#2e7d32] mb-sm">
+                                    <span className="material-symbols-outlined text-sm">thumb_up</span>
+                                    <h5 className="font-label-md">Positive Points</h5>
+                                  </div>
+                                  <ul className="list-disc pl-5 text-sm text-on-surface-variant space-y-1">
+                                    {aiData.positivePoints.map((pt, i) => <li key={i}>{pt}</li>)}
+                                  </ul>
+                                </div>
+                              )}
+                              
+                              {aiData.negativePoints && aiData.negativePoints.length > 0 && (
+                                <div className="bg-surface rounded-lg p-md border border-outline-variant">
+                                  <div className="flex items-center gap-xs text-[#c62828] mb-sm">
+                                    <span className="material-symbols-outlined text-sm">thumb_down</span>
+                                    <h5 className="font-label-md">Areas of Concern</h5>
+                                  </div>
+                                  <ul className="list-disc pl-5 text-sm text-on-surface-variant space-y-1">
+                                    {aiData.negativePoints.map((pt, i) => <li key={i}>{pt}</li>)}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+
+                            {aiData.suggestions && aiData.suggestions.length > 0 && (
+                              <div className="mb-md bg-[#F4F1EE] p-md rounded-lg border border-[#E5E0DA]">
+                                <div className="flex items-center gap-xs text-secondary mb-sm">
+                                  <span className="material-symbols-outlined text-sm">lightbulb</span>
+                                  <h5 className="font-label-md">Improvement Suggestions</h5>
+                                </div>
+                                <ul className="list-disc pl-5 text-sm text-on-surface-variant space-y-1">
+                                  {aiData.suggestions.map((sug, i) => <li key={i}>{sug}</li>)}
+                                </ul>
+                              </div>
+                            )}
+
+                            {aiData.ownerReply && (
+                              <div className="bg-primary-container p-md rounded-lg">
+                                <div className="flex items-center justify-between mb-sm text-on-primary-container">
+                                  <div className="flex items-center gap-xs">
+                                    <span className="material-symbols-outlined text-sm">edit_note</span>
+                                    <h5 className="font-label-md">AI Generated Reply</h5>
+                                  </div>
+                                  <button className="text-xs bg-primary text-on-primary px-2 py-1 rounded hover:bg-primary/90 flex items-center gap-1 transition-colors" onClick={() => navigator.clipboard.writeText(aiData.ownerReply)}>
+                                    <span className="material-symbols-outlined text-[14px]">content_copy</span> Copy
+                                  </button>
+                                </div>
+                                <p className="text-sm text-on-primary-container/80 italic leading-relaxed border-l-2 border-primary pl-3">
+                                  "{aiData.ownerReply}"
+                                </p>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
