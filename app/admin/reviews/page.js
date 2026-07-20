@@ -272,7 +272,7 @@ export default function ReviewsPage() {
                                   </button>
                                 </div>
                                 <p className="text-sm text-on-primary-container/80 italic leading-relaxed border-l-2 border-primary pl-3">
-                                  "{aiData.ownerReply}"
+                                  &quot;{aiData.ownerReply}&quot;
                                 </p>
                               </div>
                             )}

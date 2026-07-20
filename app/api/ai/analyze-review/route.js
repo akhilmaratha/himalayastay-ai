@@ -45,21 +45,21 @@ Guest Review:
 `;
 
     // 3. Analyze the Review with Gemini
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    
-    // Implement a 15-second timeout for the API call
+    const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
+
+    // Implement a 60-second timeout for the API call
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
 
     let result;
     try {
       // In JS SDK for Gemini we might not be able to pass AbortSignal directly if it doesn't support it, 
       // but we can use Promise.race to enforce timeout.
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Gemini API request timed out')), 15000)
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Gemini API request timed out')), 60000)
       );
       const apiPromise = model.generateContent(prompt);
-      
+
       result = await Promise.race([apiPromise, timeoutPromise]);
     } finally {
       clearTimeout(timeoutId);
@@ -96,10 +96,10 @@ Guest Review:
 
   } catch (error) {
     console.error('Error in analyze-review endpoint:', error);
-    
+
     const statusCode = error.message === 'Gemini API request timed out' ? 504 : 500;
     const errorMessage = error.message || 'An unexpected error occurred while analyzing the review.';
-    
+
     return NextResponse.json(
       { error: errorMessage },
       { status: statusCode }
