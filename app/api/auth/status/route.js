@@ -12,8 +12,8 @@ export async function GET(request) {
     const customToken = request.cookies.get('token')?.value;
     if (customToken) {
       try {
-        await jwtVerify(customToken, JWT_SECRET);
-        return NextResponse.json({ isAuthenticated: true });
+        const { payload } = await jwtVerify(customToken, JWT_SECRET);
+        return NextResponse.json({ isAuthenticated: true, user: payload });
       } catch (error) {
         // ignore and fallback to NextAuth
       }
@@ -22,7 +22,7 @@ export async function GET(request) {
     // Check NextAuth token
     const nextAuthToken = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
     if (nextAuthToken) {
-      return NextResponse.json({ isAuthenticated: true });
+      return NextResponse.json({ isAuthenticated: true, user: nextAuthToken });
     }
 
     return NextResponse.json({ isAuthenticated: false });
