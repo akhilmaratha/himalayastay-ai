@@ -1,10 +1,47 @@
-import React from 'react';
+"use client";
+import React, { useState, useEffect } from 'react';
 
 export default function Profile() {
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch('/api/settings');
+        if (res.ok) {
+          const data = await res.json();
+          setProfile(data);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setIsSaving(true);
+    try {
+      await fetch('/api/settings', { method: 'PUT', body: JSON.stringify(profile) });
+      alert('Profile updated successfully!');
+    } catch (err) {
+      alert('Failed to update profile');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (loading) return <div className="p-xl text-center">Loading profile...</div>;
+
   return (
     <main className="flex-1 w-full flex flex-col p-sm md:p-xl gap-xl pb-24 md:pb-xl">
       <div className="mb-md">
-        <h1 className="font-display-lg text-display-lg text-primary">Welcome home, Tenzin.</h1>
+        <h1 className="font-display-lg text-display-lg text-primary">Welcome home, {profile?.firstName || 'Traveler'}.</h1>
         <p className="font-body-lg text-body-lg text-on-surface-variant mt-2 max-w-2xl">Manage your mountain profile and track your journey through the peaks.</p>
       </div>
 
@@ -36,7 +73,7 @@ export default function Profile() {
                     <input 
                       className="border-0 border-b border-outline-variant bg-transparent focus:ring-0 focus:border-primary transition-all px-0 py-2 font-body-lg text-body-lg text-primary outline-none" 
                       type="text" 
-                      defaultValue="Tenzin Gyatso"
+                      defaultValue={profile?.name || ""}
                     />
                   </div>
                   <div className="flex flex-col group">
@@ -44,7 +81,8 @@ export default function Profile() {
                     <input 
                       className="border-0 border-b border-outline-variant bg-transparent focus:ring-0 focus:border-primary transition-all px-0 py-2 font-body-lg text-body-lg text-primary outline-none" 
                       type="email" 
-                      defaultValue="tenzin.peak@gmail.com"
+                      defaultValue={profile?.email || ""}
+                      readOnly
                     />
                   </div>
                   <div className="flex flex-col group">
@@ -52,7 +90,7 @@ export default function Profile() {
                     <input 
                       className="border-0 border-b border-outline-variant bg-transparent focus:ring-0 focus:border-primary transition-all px-0 py-2 font-body-lg text-body-lg text-primary outline-none" 
                       type="tel" 
-                      defaultValue="+91 98765-43210"
+                      placeholder="Add phone number"
                     />
                   </div>
                   <div className="flex flex-col group">
@@ -60,7 +98,7 @@ export default function Profile() {
                     <input 
                       className="border-0 border-b border-outline-variant bg-transparent focus:ring-0 focus:border-primary transition-all px-0 py-2 font-body-lg text-body-lg text-primary outline-none" 
                       type="text" 
-                      defaultValue="Manali, HP"
+                      placeholder="Add location"
                     />
                   </div>
                 </div>
@@ -74,13 +112,13 @@ export default function Profile() {
                 className="w-full bg-surface-container-low border border-outline-variant rounded-lg p-md font-body-md text-body-md focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all text-on-surface" 
                 placeholder="Tell your mountain story..." 
                 rows="4"
-                defaultValue="An avid hiker and photography enthusiast who finds peace in the high altitudes of Spiti and Ladakh. Seeking authentic homestays that bridge the gap between tradition and comfort. Member of the Himalayan Stays community since 2021."
+                defaultValue={profile?.bio || ""}
               ></textarea>
             </div>
             
             <div className="mt-lg flex flex-wrap justify-end gap-4">
               <button className="px-8 py-3 border border-outline text-secondary font-label-md text-label-md rounded-full hover:bg-surface-container-high transition-all">Discard Changes</button>
-              <button className="px-8 py-3 bg-primary text-on-primary font-label-md text-label-md rounded-full hover:shadow-lg active:scale-95 transition-all">Save Profile</button>
+              <button onClick={handleSave} disabled={isSaving} className="px-8 py-3 bg-primary text-on-primary font-label-md text-label-md rounded-full hover:shadow-lg active:scale-95 transition-all">{isSaving ? 'Saving...' : 'Save Profile'}</button>
             </div>
           </div>
         </div>

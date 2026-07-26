@@ -3,29 +3,19 @@
 import React, { useEffect, useState } from 'react';
 
 export default function AdminDashboard() {
-  const [bookings, setBookings] = useState([]);
-  const [rooms, setRooms] = useState([]);
-  const [reviews, setReviews] = useState([]);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const [resBookings, resRooms, resReviews] = await Promise.all([
-          fetch("/api/bookings"),
-          fetch("/api/rooms"),
-          fetch("/api/reviews")
-        ]);
-        if (!resBookings.ok || !resRooms.ok || !resReviews.ok) {
+        const res = await fetch("/api/dashboard");
+        if (!res.ok) {
           throw new Error("Failed to load dashboard data");
         }
-        const dataBookings = await resBookings.json();
-        const dataRooms = await resRooms.json();
-        const dataReviews = await resReviews.json();
-        setBookings(dataBookings);
-        setRooms(dataRooms);
-        setReviews(dataReviews);
+        const data = await res.json();
+        setStats(data);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -35,13 +25,14 @@ export default function AdminDashboard() {
     fetchDashboardData();
   }, []);
 
-  // Calculations
-  const totalBookings = bookings.length;
-  const totalRooms = rooms.length;
-  const totalReviews = reviews.length;
-  const averageRating = totalReviews > 0 ? (reviews.reduce((acc, curr) => acc + (curr.rating || 5), 0) / totalReviews).toFixed(1) : "0.0";
-  const occupancyRate = totalRooms > 0 ? Math.min(100, Math.round((bookings.filter(b => b.status !== "Cancelled").length / totalRooms) * 100)) : 0;
-
+  const totalBookings = stats?.totalBookings || 0;
+  const totalRooms = stats?.totalRooms || 0;
+  const totalReviews = stats?.totalReviews || 0;
+  const averageRating = stats?.averageRating || "0.0";
+  const occupancyRate = stats?.occupancyRate || 0;
+  const recentBookings = stats?.recentBookings || [];
+  const chartData = stats?.chartData || [0, 0, 0, 0, 0, 0];
+  const occupancyByRoom = stats?.occupancyByRoom || [];
 
   return (
     <>
@@ -126,16 +117,17 @@ export default function AdminDashboard() {
           {/* Mock Chart Container */}
           <div className="h-64 w-full relative flex items-end justify-between px-xs">
             <div className="absolute inset-0 border-b border-l border-outline-variant/30"></div>
-            {/* Bar chart markers for visual flavor */}
-            <div className="w-12 bg-primary/20 rounded-t-lg h-[40%] group relative cursor-pointer hover:bg-primary/40 transition-all">
-              <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-primary text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">42</div>
-            </div>
-            <div className="w-12 bg-primary/20 rounded-t-lg h-[55%] group relative cursor-pointer hover:bg-primary/40 transition-all"></div>
-            <div className="w-12 bg-primary/20 rounded-t-lg h-[45%] group relative cursor-pointer hover:bg-primary/40 transition-all"></div>
-            <div className="w-12 bg-primary/20 rounded-t-lg h-[75%] group relative cursor-pointer hover:bg-primary/40 transition-all"></div>
-            <div className="w-12 bg-primary text-primary-container rounded-t-lg h-[90%] group relative cursor-pointer transition-all">
-              <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-primary text-white text-xs px-2 py-1 rounded">Current: 88</div>
-            </div>
+            {chartData.map((val, idx) => {
+              const height = Math.max(10, Math.min(100, (val / Math.max(...chartData, 1)) * 100));
+              const isLast = idx === chartData.length - 1;
+              return (
+                <div key={idx} className={`w-12 rounded-t-lg group relative cursor-pointer transition-all ${isLast ? 'bg-primary text-primary-container h-full' : 'bg-primary/20 hover:bg-primary/40'}`} style={{ height: `${height}%` }}>
+                  <div className={`absolute -top-10 left-1/2 -translate-x-1/2 bg-primary text-white text-xs px-2 py-1 rounded ${isLast ? '' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
+                    {isLast ? `Current: ${val}` : val}
+                  </div>
+                </div>
+              );
+            })}
             <div className="w-12 bg-primary/10 border-t-2 border-dashed border-primary/30 h-[80%]"></div>
           </div>
           <div className="flex justify-between mt-md text-label-sm text-on-surface-variant font-medium">
@@ -147,33 +139,19 @@ export default function AdminDashboard() {
         <div className="bg-surface/70 backdrop-blur-md border border-outline-variant/50 p-lg rounded-xl shadow-sm">
           <h4 className="font-headline-lg text-headline-lg text-primary mb-lg">Occupancy by Room</h4>
           <div className="space-y-md">
-            <div>
-              <div className="flex justify-between text-label-md mb-xs">
-                <span>Pine Cottages</span>
-                <span className="text-primary font-bold">96%</span>
+            {occupancyByRoom.length === 0 ? (
+              <p className="text-on-surface-variant text-label-md">No room data available.</p>
+            ) : occupancyByRoom.map((room, idx) => (
+              <div key={idx}>
+                <div className="flex justify-between text-label-md mb-xs">
+                  <span>{room.name}</span>
+                  <span className="text-primary font-bold">{room.occupancy}%</span>
+                </div>
+                <div className="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden">
+                  <div className="bg-primary h-full transition-all" style={{ width: `${room.occupancy}%` }}></div>
+                </div>
               </div>
-              <div className="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden">
-                <div className="bg-primary h-full w-[96%]"></div>
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between text-label-md mb-xs">
-                <span>Cloud Deck Suites</span>
-                <span className="text-primary font-bold">82%</span>
-              </div>
-              <div className="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden">
-                <div className="bg-primary h-full w-[82%]"></div>
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between text-label-md mb-xs">
-                <span>Terrace Tents</span>
-                <span className="text-primary font-bold">64%</span>
-              </div>
-              <div className="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden">
-                <div className="bg-primary h-full w-[64%]"></div>
-              </div>
-            </div>
+            ))}
             <div className="mt-lg p-md bg-secondary-fixed/30 rounded-xl">
               <div className="flex gap-sm items-start">
                 <span className="material-symbols-outlined text-secondary">lightbulb</span>
@@ -220,11 +198,11 @@ export default function AdminDashboard() {
                 <tr><td colSpan="6" className="text-center py-8">Loading bookings...</td></tr>
               ) : error ? (
                 <tr><td colSpan="6" className="text-center py-8 text-error">{error}</td></tr>
-              ) : bookings.length === 0 ? (
+              ) : recentBookings.length === 0 ? (
                 <tr><td colSpan="6" className="text-center py-8">No recent bookings.</td></tr>
               ) : (
-                bookings.map((booking, idx) => (
-                  <tr key={booking.id || idx} className="hover:bg-primary/5 transition-colors group">
+                recentBookings.map((booking, idx) => (
+                  <tr key={booking._id || idx} className="hover:bg-primary/5 transition-colors group">
                     <td className="px-lg py-md">
                       <div className="flex items-center gap-md">
                         <div className="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed-variant font-bold">
@@ -232,18 +210,16 @@ export default function AdminDashboard() {
                         </div>
                         <div>
                           <div className="font-bold text-on-surface">{booking.user || "Guest"}</div>
-                          <div className="text-label-sm text-on-surface-variant">2 Adults</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-lg py-md">
                       <div className="text-body-md">{booking.dates || "N/A"}</div>
-                      <div className="text-label-sm text-on-surface-variant">3 Nights</div>
                     </td>
                     <td className="px-lg py-md">
-                      <span className="px-md py-1 bg-surface-container-highest rounded-full text-label-sm">Room {booking.roomId}</span>
+                      <span className="px-md py-1 bg-surface-container-highest rounded-full text-label-sm">{booking.roomId?.title || "Room " + (booking.roomId || "N/A")}</span>
                     </td>
-                    <td className="px-lg py-md font-bold text-primary">₹24,500</td>
+                    <td className="px-lg py-md font-bold text-primary">₹{booking.roomId?.price || "N/A"}</td>
                     <td className="px-lg py-md">
                       <span className="flex items-center gap-1 text-secondary font-bold text-label-sm">
                         <span className="w-2 h-2 rounded-full bg-secondary"></span> {booking.status || "Pending"}

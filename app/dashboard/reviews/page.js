@@ -1,11 +1,29 @@
 "use client";
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function Reviews() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const res = await fetch('/api/reviews');
+        if (!res.ok) throw new Error('Failed to load reviews');
+        const data = await res.json();
+        setReviews(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchReviews();
+  }, []);
 
   const toggleModal = () => setIsModalOpen(!isModalOpen);
 
@@ -80,70 +98,37 @@ export default function Reviews() {
         </div>
         
         <div className="space-y-8">
-          {/* Review Item 1 */}
-          <div className="bg-[#fdfcf5] border-l-4 border-primary p-8 rounded-r-xl shadow-[0_4px_20px_-2px_rgba(45,71,57,0.05)]">
-            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-lg bg-surface-container overflow-hidden shrink-0">
-                  <img 
-                    className="w-full h-full object-cover" 
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrt9CR9CvDfwZIwP_KYV_AtHO81ZLRObHwjiP9yJznOMowORVYkeKOOdOktYd_ICxvlAnbHPLf4rUxA3VpkAYvcMvbahM1qJPBmVBbcP7qbm1baGnUJ1758Wn1LxSYScEyQ5ltp_7_7uxZfB46_7Csm-hOz4hfXkt-B00N-8-MN3g_Z8WOZRyKxQxOl3cbuZkUGekFrBJ2OYKi1SkjWzvYpzqfnA2wik5g0kPUURlDwI0DGBl9XmzgNtEyNzCb0Yg-WViQur1DXSnj"
-                    alt="The Old Pine Lodge"
-                  />
+          {loading ? (
+            <div className="py-8 text-center text-on-surface-variant">Loading reviews...</div>
+          ) : error ? (
+            <div className="py-8 text-center text-error">{error}</div>
+          ) : reviews.length === 0 ? (
+            <div className="py-8 text-center text-on-surface-variant">You haven't written any reviews yet.</div>
+          ) : (
+            reviews.map((review, idx) => (
+              <div key={review._id || idx} className="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant shadow-[0_4px_20px_-2px_rgba(45,71,57,0.05)]">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center shrink-0 text-primary font-bold">
+                      {review.roomId?.title ? review.roomId.title.charAt(0) : 'R'}
+                    </div>
+                    <div>
+                      <h4 className="font-label-md text-primary leading-tight">{review.roomId?.title || 'Unknown Room'}</h4>
+                      <p className="text-label-sm text-outline">{new Date(review.createdAt).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <span key={i} className={`material-symbols-outlined ${i < review.rating ? 'text-secondary' : 'text-outline-variant'}`} style={i < review.rating ? { fontVariationSettings: "'FILL' 1" } : {}}>star</span>
+                    ))}
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-label-md text-primary leading-tight">The Old Pine Lodge</h4>
-                  <p className="text-label-sm text-outline">Stayed August 2023</p>
-                </div>
+                <p className="text-body-lg text-on-surface-variant mb-6">
+                  {review.comment}
+                </p>
               </div>
-              <div className="flex gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <span key={i} className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                ))}
-              </div>
-            </div>
-            <p className="font-display-md text-[20px] text-on-surface italic mb-4 leading-relaxed">
-              "An absolute sanctuary in the heart of the mountains. The host, Tenzin, treats you like family and the morning views of the Kanchenjunga are unparalleled."
-            </p>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-label-sm text-on-surface-variant">
-                <span className="material-symbols-outlined text-[16px]">thumb_up</span>
-                12 People found this helpful
-              </div>
-              <button className="text-secondary font-label-md hover:underline">Edit Review</button>
-            </div>
-          </div>
-
-          {/* Review Item 2 */}
-          <div className="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant shadow-[0_4px_20px_-2px_rgba(45,71,57,0.05)]">
-            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-lg bg-surface-container overflow-hidden shrink-0">
-                  <img 
-                    className="w-full h-full object-cover" 
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXQPWTZW-5FGlVO7mBaAsaYcukRJmbmd_kZaw6Lm8UilFm3No0rWhYuOZgGkSriV9DXXXchLE2vihyNI8Kywtlx9dCfSXRU1_62eNE7EC-J5lswXG3l4g_CH0c0_1kRwVAxpRnRFG1BSpyPCF1c4Zxi36dxEyah4_6X_nUUM2K7skFnyDlY-1Ed9Nj8CzLIL6OvrLvKjahmf_D21Udf1GizdoWtNCzwoTfnoiLjuzFynD94-fkEMhINNCQuWyJMmzr7IHpn56Xfr55"
-                    alt="Summit Loft Suites"
-                  />
-                </div>
-                <div>
-                  <h4 className="font-label-md text-primary leading-tight">Summit Loft Suites</h4>
-                  <p className="text-label-sm text-outline">Stayed June 2023</p>
-                </div>
-              </div>
-              <div className="flex gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <span key={i} className={`material-symbols-outlined ${i < 4 ? 'text-secondary' : 'text-outline-variant'}`} style={i < 4 ? { fontVariationSettings: "'FILL' 1" } : {}}>star</span>
-                ))}
-              </div>
-            </div>
-            <p className="text-body-lg text-on-surface-variant mb-6">
-              The location was perfect for hiking access. Very clean and modern. My only suggestion would be to improve the Wi-Fi connectivity as it was a bit patchy for remote work, but the environment more than makes up for it.
-            </p>
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <span className="text-label-sm text-outline bg-surface-container px-3 py-1 rounded-full">Private feedback shared with Host</span>
-              <button className="text-secondary font-label-md hover:underline">View Public Thread</button>
-            </div>
-          </div>
+            ))
+          )}
         </div>
       </section>
 

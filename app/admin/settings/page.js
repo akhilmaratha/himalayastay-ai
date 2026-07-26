@@ -1,8 +1,27 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
+  const [settings, setSettings] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch('/api/settings');
+        if (res.ok) {
+          const data = await res.json();
+          setSettings(data);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -88,35 +107,39 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <form className="space-y-6" onSubmit={handleSave}>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="relative group-input border-b border-outline-variant hover:border-primary transition-colors">
-                      <input className="w-full bg-transparent border-none px-0 py-2 pt-6 focus:ring-0 text-body-md text-on-surface" id="firstName" placeholder=" " type="text" defaultValue="Rahul" />
-                      <label className="absolute left-0 top-4 text-outline transition-all duration-200 pointer-events-none font-label-md" htmlFor="firstName">First Name</label>
+                {loading ? (
+                  <div className="py-8 text-center text-on-surface-variant">Loading settings...</div>
+                ) : (
+                  <form className="space-y-6" onSubmit={handleSave}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="relative group-input border-b border-outline-variant hover:border-primary transition-colors">
+                        <input className="w-full bg-transparent border-none px-0 py-2 pt-6 focus:ring-0 text-body-md text-on-surface" id="firstName" placeholder=" " type="text" defaultValue={settings?.firstName || ""} />
+                        <label className="absolute left-0 top-4 text-outline transition-all duration-200 pointer-events-none font-label-md" htmlFor="firstName">First Name</label>
+                      </div>
+                      <div className="relative group-input border-b border-outline-variant hover:border-primary transition-colors">
+                        <input className="w-full bg-transparent border-none px-0 py-2 pt-6 focus:ring-0 text-body-md text-on-surface" id="lastName" placeholder=" " type="text" defaultValue={settings?.lastName || ""} />
+                        <label className="absolute left-0 top-4 text-outline transition-all duration-200 pointer-events-none font-label-md" htmlFor="lastName">Last Name</label>
+                      </div>
                     </div>
                     <div className="relative group-input border-b border-outline-variant hover:border-primary transition-colors">
-                      <input className="w-full bg-transparent border-none px-0 py-2 pt-6 focus:ring-0 text-body-md text-on-surface" id="lastName" placeholder=" " type="text" defaultValue="Sharma" />
-                      <label className="absolute left-0 top-4 text-outline transition-all duration-200 pointer-events-none font-label-md" htmlFor="lastName">Last Name</label>
+                      <input className="w-full bg-transparent border-none px-0 py-2 pt-6 focus:ring-0 text-body-md text-on-surface" id="email" placeholder=" " type="email" defaultValue={settings?.email || ""} readOnly />
+                      <label className="absolute left-0 top-4 text-outline transition-all duration-200 pointer-events-none font-label-md" htmlFor="email">Email Address</label>
                     </div>
-                  </div>
-                  <div className="relative group-input border-b border-outline-variant hover:border-primary transition-colors">
-                    <input className="w-full bg-transparent border-none px-0 py-2 pt-6 focus:ring-0 text-body-md text-on-surface" id="email" placeholder=" " type="email" defaultValue="rahul@peakstay.com" />
-                    <label className="absolute left-0 top-4 text-outline transition-all duration-200 pointer-events-none font-label-md" htmlFor="email">Email Address</label>
-                  </div>
-                  <div className="relative group-input border-b border-outline-variant hover:border-primary transition-colors">
-                    <textarea className="w-full bg-transparent border-none px-0 py-2 pt-6 focus:ring-0 text-body-md text-on-surface resize-none" id="bio" placeholder=" " rows="3" defaultValue="Passionate about sharing the beauty of the Himalayas. Over 10 years of experience in boutique hospitality."></textarea>
-                    <label className="absolute left-0 top-4 text-outline transition-all duration-200 pointer-events-none font-label-md" htmlFor="bio">Bio</label>
-                  </div>
-                  <div className="flex justify-end pt-4">
-                    <button 
-                      disabled={isSaving}
-                      className="px-6 py-2 bg-primary text-on-primary font-label-md rounded-lg hover:bg-primary-container transition-colors" 
-                      type="submit"
-                    >
-                      {isSaving ? 'Saving...' : 'Save Changes'}
-                    </button>
-                  </div>
-                </form>
+                    <div className="relative group-input border-b border-outline-variant hover:border-primary transition-colors">
+                      <textarea className="w-full bg-transparent border-none px-0 py-2 pt-6 focus:ring-0 text-body-md text-on-surface resize-none" id="bio" placeholder=" " rows="3" defaultValue={settings?.bio || ""}></textarea>
+                      <label className="absolute left-0 top-4 text-outline transition-all duration-200 pointer-events-none font-label-md" htmlFor="bio">Bio</label>
+                    </div>
+                    <div className="flex justify-end pt-4">
+                      <button 
+                        disabled={isSaving}
+                        className="px-6 py-2 bg-primary text-on-primary font-label-md rounded-lg hover:bg-primary-container transition-colors" 
+                        type="submit"
+                      >
+                        {isSaving ? 'Saving...' : 'Save Changes'}
+                      </button>
+                    </div>
+                  </form>
+                )}
               </div>
             </section>
           </div>

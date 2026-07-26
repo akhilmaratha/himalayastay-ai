@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 export default function RoomsPage() {
   const router = useRouter();
   const [rooms, setRooms] = useState([]);
+  const [dashboardStats, setDashboardStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -25,10 +26,18 @@ export default function RoomsPage() {
   const fetchRooms = async (showLoading = true) => {
     if (showLoading) setLoading(true);
     try {
-      const res = await fetch('/api/rooms');
-      if (!res.ok) throw new Error('Failed to load rooms');
-      const data = await res.json();
-      setRooms(data);
+      const [resRooms, resDashboard] = await Promise.all([
+        fetch('/api/rooms'),
+        fetch('/api/dashboard')
+      ]);
+      if (!resRooms.ok) throw new Error('Failed to load rooms');
+      const dataRooms = await resRooms.json();
+      setRooms(dataRooms);
+      
+      if (resDashboard.ok) {
+        const dataDashboard = await resDashboard.json();
+        setDashboardStats(dataDashboard);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -236,7 +245,7 @@ export default function RoomsPage() {
             </div>
             <div>
               <p className="font-label-sm text-on-surface-variant uppercase tracking-wider">Occupancy Rate</p>
-              <h4 className="font-display-md text-display-md text-primary leading-none mt-xs">82%</h4>
+              <h4 className="font-display-md text-display-md text-primary leading-none mt-xs">{dashboardStats?.occupancyRate || 0}%</h4>
             </div>
           </div>
           
@@ -246,7 +255,7 @@ export default function RoomsPage() {
             </div>
             <div>
               <p className="font-label-sm text-on-surface-variant uppercase tracking-wider">Avg. Nightly Rate</p>
-              <h4 className="font-display-md text-display-md text-primary leading-none mt-xs">₹9,450</h4>
+              <h4 className="font-display-md text-display-md text-primary leading-none mt-xs">₹{dashboardStats?.avgNightlyRate || 0}</h4>
             </div>
           </div>
           
@@ -256,7 +265,7 @@ export default function RoomsPage() {
             </div>
             <div>
               <p className="font-label-sm text-on-surface-variant uppercase tracking-wider">Under Maintenance</p>
-              <h4 className="font-display-md text-display-md text-primary leading-none mt-xs">3</h4>
+              <h4 className="font-display-md text-display-md text-primary leading-none mt-xs">{dashboardStats?.maintenanceCount || 0}</h4>
             </div>
           </div>
         </div>

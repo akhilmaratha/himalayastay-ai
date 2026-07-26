@@ -5,6 +5,7 @@ import Image from 'next/image';
 
 export default function BookingsManagement() {
   const [bookings, setBookings] = useState([]);
+  const [dashboardStats, setDashboardStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -23,10 +24,18 @@ export default function BookingsManagement() {
   const fetchBookings = async (showLoading = true) => {
     if (showLoading) setLoading(true);
     try {
-      const res = await fetch('/api/bookings');
-      if (!res.ok) throw new Error('Failed to load bookings');
-      const data = await res.json();
-      setBookings(data);
+      const [resBookings, resDashboard] = await Promise.all([
+        fetch('/api/bookings'),
+        fetch('/api/dashboard')
+      ]);
+      if (!resBookings.ok) throw new Error('Failed to load bookings');
+      const dataBookings = await resBookings.json();
+      setBookings(dataBookings);
+      
+      if (resDashboard.ok) {
+        const dataDashboard = await resDashboard.json();
+        setDashboardStats(dataDashboard);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -184,41 +193,27 @@ export default function BookingsManagement() {
         <div className="bg-surface/70 backdrop-blur-md p-md rounded-xl shadow-sm border border-outline-variant/20 hover:shadow-md transition-shadow">
           <p className="text-label-sm text-on-surface-variant uppercase tracking-widest mb-xs">Occupancy Rate</p>
           <div className="flex items-end gap-sm">
-            <span className="font-display-md text-display-md text-primary">84%</span>
-            <span className="text-green-600 font-label-sm flex items-center gap-1 pb-1">
-              <span className="material-symbols-outlined text-[16px]">trending_up</span>
-              +12%
-            </span>
+            <span className="font-display-md text-display-md text-primary">{dashboardStats?.occupancyRate || 0}%</span>
           </div>
           <div className="w-full h-1.5 bg-surface-container-high rounded-full mt-md overflow-hidden">
-            <div className="bg-primary h-full" style={{ width: '84%' }}></div>
+            <div className="bg-primary h-full" style={{ width: `${dashboardStats?.occupancyRate || 0}%` }}></div>
           </div>
         </div>
         
         <div className="bg-surface/70 backdrop-blur-md p-md rounded-xl shadow-sm border border-outline-variant/20 hover:shadow-md transition-shadow">
-          <p className="text-label-sm text-on-surface-variant uppercase tracking-widest mb-xs">Active Check-ins</p>
+          <p className="text-label-sm text-on-surface-variant uppercase tracking-widest mb-xs">Total Bookings</p>
           <div className="flex items-end gap-sm">
-            <span className="font-display-md text-display-md text-primary">12</span>
-            <span className="text-on-surface-variant font-label-sm pb-1">Expected today</span>
-          </div>
-          <div className="flex mt-md -space-x-2">
-            <div className="w-8 h-8 rounded-full border-2 border-surface bg-gray-300"></div>
-            <div className="w-8 h-8 rounded-full border-2 border-surface bg-gray-400"></div>
-            <div className="w-8 h-8 rounded-full border-2 border-surface bg-gray-500"></div>
-            <div className="w-8 h-8 rounded-full border-2 border-surface bg-primary-container flex items-center justify-center text-[10px] text-on-primary font-bold">+9</div>
+            <span className="font-display-md text-display-md text-primary">{dashboardStats?.totalBookings || 0}</span>
+            <span className="text-on-surface-variant font-label-sm pb-1">All time</span>
           </div>
         </div>
         
         <div className="bg-surface/70 backdrop-blur-md p-md rounded-xl shadow-sm border border-outline-variant/20 hover:shadow-md transition-shadow">
-          <p className="text-label-sm text-on-surface-variant uppercase tracking-widest mb-xs">Direct Revenue</p>
+          <p className="text-label-sm text-on-surface-variant uppercase tracking-widest mb-xs">Avg. Nightly Rate</p>
           <div className="flex items-end gap-sm">
-            <span className="font-display-md text-display-md text-secondary">₹1.4L</span>
-            <span className="text-secondary font-label-sm flex items-center gap-1 pb-1">
-              <span className="material-symbols-outlined text-[16px]">payments</span>
-              34% of total
-            </span>
+            <span className="font-display-md text-display-md text-secondary">₹{dashboardStats?.avgNightlyRate || 0}</span>
           </div>
-          <p className="text-label-sm text-on-surface-variant mt-md">Admin-created bookings continue to lead high-value stays.</p>
+          <p className="text-label-sm text-on-surface-variant mt-md">Across all your listed properties.</p>
         </div>
       </div>
 
