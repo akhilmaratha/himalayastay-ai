@@ -1,30 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, memo } from "react";
 import { ThemeToggle } from "../ThemeToggle";
 import { signOut } from "next-auth/react";
 
-export default function Navbar() {
+const Navbar = memo(function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
-  const showToast = (message, type = 'success') => {
+  const showToast = useCallback((message, type = 'success') => {
     setToast({ show: true, message, type });
     setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
-  };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
+      setScrolled(window.scrollY > 50);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -42,7 +37,7 @@ export default function Navbar() {
     checkAuth();
   }, []);
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
       await signOut({ redirect: false });
@@ -54,7 +49,11 @@ export default function Navbar() {
       console.error("Logout failed", error);
       showToast("Failed to logout", "error");
     }
-  };
+  }, [showToast]);
+
+  const toggleMobileMenu = useCallback(() => {
+    setIsMobileMenuOpen(prev => !prev);
+  }, []);
 
   return (
     <nav
@@ -63,7 +62,7 @@ export default function Navbar() {
       } dark:bg-surface-container/80`}
       id="top-nav"
     >
-      <div className="max-w-container-max mx-auto px-md flex items-center justify-between h-20">
+      <div className="max-w-container-max mx-auto px-4 md:px-md flex items-center justify-between h-20">
         {/* Brand */}
         <Link
           href="/"
@@ -85,12 +84,6 @@ export default function Navbar() {
           >
             Stays
           </Link>
-          {/* <Link
-            href="#"
-            className="text-on-surface-variant font-medium hover:text-primary transition-colors duration-300"
-          >
-            Experiences
-          </Link> */}
           <Link
             href="/about"
             className="text-on-surface-variant font-medium hover:text-primary transition-colors duration-300"
@@ -132,22 +125,46 @@ export default function Navbar() {
           </Link>
         </div>
         {/* Mobile Menu Toggle */}
-        <button className="md:hidden text-on-surface p-2">
-          <span
-            className="material-symbols-outlined"
-            style={{ fontVariationSettings: "'FILL' 0" }}
-          >
-            menu
-          </span>
-        </button>
+        <div className="md:hidden flex items-center gap-2">
+          <ThemeToggle />
+          <button onClick={toggleMobileMenu} className="text-on-surface p-2">
+            <span
+              className="material-symbols-outlined"
+              style={{ fontVariationSettings: "'FILL' 0" }}
+            >
+              {isMobileMenuOpen ? 'close' : 'menu'}
+            </span>
+          </button>
+        </div>
       </div>
+      
+      {/* Mobile Nav Menu */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden bg-surface dark:bg-surface-container absolute top-20 left-0 w-full shadow-lg flex flex-col p-4 gap-4 animate-in slide-in-from-top-2 border-t border-outline-variant/30">
+          <Link href="/" onClick={toggleMobileMenu} className="text-primary font-bold hover:bg-surface-container-low p-2 rounded">Explore</Link>
+          <Link href="/stays" onClick={toggleMobileMenu} className="text-on-surface-variant font-medium hover:bg-surface-container-low p-2 rounded">Stays</Link>
+          <Link href="/about" onClick={toggleMobileMenu} className="text-on-surface-variant font-medium hover:bg-surface-container-low p-2 rounded">About</Link>
+          <hr className="border-outline-variant/30 my-2" />
+          {!isAuthenticated ? (
+            <>
+              <Link href="/login" onClick={toggleMobileMenu} className="text-on-surface-variant font-medium p-2 rounded">Login</Link>
+              <Link href="/signup" onClick={toggleMobileMenu} className="text-on-surface-variant font-medium p-2 rounded">Sign Up</Link>
+            </>
+          ) : (
+            <button onClick={() => { handleLogout(); toggleMobileMenu(); }} className="text-left text-on-surface-variant font-medium p-2 rounded">Logout</button>
+          )}
+          <Link href="/booking" onClick={toggleMobileMenu} className="bg-primary-container text-on-primary text-center px-6 py-3 rounded-lg font-label-md mt-2">Book Now</Link>
+        </div>
+      )}
       
       {/* Toast Notification */}
       {toast.show && (
-        <div className={`fixed bottom-4 right-4 p-md rounded shadow-lg text-white font-label-md z-50 ${toast.type === 'error' ? 'bg-error' : 'bg-primary'}`}>
+        <div className={`fixed bottom-4 right-4 p-md rounded shadow-lg text-white font-label-md z-50 animate-in slide-in-from-bottom-5 ${toast.type === 'error' ? 'bg-error' : 'bg-primary'}`}>
           {toast.message}
         </div>
       )}
     </nav>
   );
-}
+});
+
+export default Navbar;

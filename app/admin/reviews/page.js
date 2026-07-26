@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { Spinner } from '@/components/ui/spinner';
 
 export default function ReviewsPage() {
@@ -28,7 +28,11 @@ export default function ReviewsPage() {
   });
   const [isSaving, setIsSaving] = useState(false);
 
-  const fetchReviews = async () => {
+  // Confirmation Dialog State
+  const [deleteId, setDeleteId] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const fetchReviews = useCallback(async () => {
     try {
       const res = await fetch("/api/reviews");
       if (!res.ok) throw new Error("Failed to load reviews");
@@ -39,30 +43,38 @@ export default function ReviewsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchReviews();
-  }, []);
+  }, [fetchReviews]);
 
-  const showToast = (message, type = 'error') => {
+  const showToast = useCallback((message, type = 'error') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 5000);
-  };
+  }, []);
 
-  const handleDelete = async (reviewId) => {
-    if (!confirm("Are you sure you want to delete this review?")) return;
+  const confirmDelete = useCallback(async () => {
+    if (!deleteId) return;
+    setIsDeleting(true);
     try {
-      const res = await fetch(`/api/reviews/${reviewId}`, { method: 'DELETE' });
+      const res = await fetch(`/api/reviews/${deleteId}`, { method: 'DELETE' });
       if (!res.ok) throw new Error("Failed to delete review");
-      setReviews(prev => prev.filter(r => (r._id || r.id) !== reviewId));
+      setReviews(prev => prev.filter(r => (r._id || r.id) !== deleteId));
       showToast("Review deleted successfully", "success");
     } catch (err) {
       showToast(err.message, "error");
+    } finally {
+      setIsDeleting(false);
+      setDeleteId(null);
     }
-  };
+  }, [deleteId, showToast]);
 
-  const handleAnalyze = async (reviewId, comment) => {
+  const handleDeleteClick = useCallback((reviewId) => {
+    setDeleteId(reviewId);
+  }, []);
+
+  const handleAnalyze = useCallback(async (reviewId, comment) => {
     if (!comment || comment.trim().length === 0) {
       setAiErrors(prev => ({ ...prev, [reviewId]: "Review comment is empty. Cannot analyze." }));
       return;
@@ -85,7 +97,6 @@ export default function ReviewsPage() {
       
       setAiResults(prev => ({ ...prev, [reviewId]: data }));
       
-      // Smooth scroll to result
       setTimeout(() => {
         if (resultRefs.current[reviewId]) {
           resultRefs.current[reviewId].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -98,26 +109,26 @@ export default function ReviewsPage() {
     } finally {
       setAnalyzingId(null);
     }
-  };
+  }, [showToast]);
 
-  const handleCopy = (text, id) => {
+  const handleCopy = useCallback((text, id) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
-  };
+  }, []);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  }, []);
 
-  const openAddModal = () => {
+  const openAddModal = useCallback(() => {
     setEditingReview(null);
     setFormData({ user: '', roomId: '', rating: 5, title: '', comment: '' });
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const openEditModal = (review) => {
+  const openEditModal = useCallback((review) => {
     setEditingReview(review);
     setFormData({
       user: review.user || '',
@@ -127,9 +138,9 @@ export default function ReviewsPage() {
       comment: review.comment || ''
     });
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     setIsSaving(true);
     try {
@@ -149,7 +160,12 @@ export default function ReviewsPage() {
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [editingReview, formData, fetchReviews, showToast]);
+
+  const averageRating = useMemo(() => {
+    if (reviews.length === 0) return "0.0";
+    return (reviews.reduce((acc, cur) => acc + (cur.rating || 5), 0) / reviews.length).toFixed(1);
+  }, [reviews]);
 
   return (
     <>
@@ -175,7 +191,7 @@ export default function ReviewsPage() {
         </div>
       )}
 
-      <div className="p-md md:p-xl max-w-container-max mx-auto w-full flex-1">
+      <div className="p-sm md:p-xl max-w-container-max mx-auto w-full flex-1">
         <div className="mb-lg flex justify-between items-end">
           <div>
             <h2 className="font-display-lg text-display-lg text-primary mb-xs">Guest Reviews</h2>
@@ -226,7 +242,7 @@ export default function ReviewsPage() {
               </div>
             </div>
             <div className="relative z-10">
-              <p className="font-display-md text-display-md text-primary">{reviews.length > 0 ? (reviews.reduce((acc, cur) => acc + (cur.rating || 5), 0) / reviews.length).toFixed(1) : "0.0"}</p>
+              <p className="font-display-md text-display-md text-primary">{averageRating}</p>
               <p className="font-label-sm text-label-sm text-on-surface-variant mt-1">Based on all time</p>
             </div>
           </div>
@@ -252,18 +268,23 @@ export default function ReviewsPage() {
         {/* Review List */}
         <div className="space-y-md">
           {loading ? (
-            <div className="py-12 text-center text-on-surface-variant font-body-md bg-surface rounded-xl border border-[#E5E0DA]">
-              <span className="material-symbols-outlined animate-spin text-primary text-display-md mb-4 block">sync</span>
+            <div className="py-12 flex flex-col items-center justify-center text-on-surface-variant font-body-md bg-surface rounded-xl border border-[#E5E0DA]">
+              <Spinner className="text-primary w-8 h-8 mb-4" />
               Loading reviews...
             </div>
           ) : error ? (
-            <div className="py-12 text-center text-error font-body-md bg-surface rounded-xl border border-[#E5E0DA]">
+            <div className="py-12 flex flex-col items-center justify-center text-error font-body-md bg-surface rounded-xl border border-[#E5E0DA]">
               <span className="material-symbols-outlined text-display-md mb-4 block">error</span>
               {error}
             </div>
           ) : reviews.length === 0 ? (
-            <div className="py-12 text-center text-on-surface-variant font-body-md bg-surface rounded-xl border border-[#E5E0DA]">
-              No reviews available.
+            <div className="py-20 flex flex-col items-center justify-center text-center text-on-surface-variant bg-surface rounded-xl border border-[#E5E0DA] shadow-sm">
+              <span className="material-symbols-outlined text-6xl text-outline-variant/50 mb-4">forum</span>
+              <p className="font-display-md text-display-md text-primary mb-2">No Reviews Yet</p>
+              <p className="text-body-md max-w-sm">When guests leave feedback about their stay, it will appear here.</p>
+              <button onClick={openAddModal} className="mt-6 px-6 py-2 bg-primary text-on-primary rounded-lg shadow-sm">
+                Add Review
+              </button>
             </div>
           ) : (
             reviews.map((review, idx) => {
@@ -274,12 +295,12 @@ export default function ReviewsPage() {
               const isAnyAnalyzing = analyzingId !== null;
 
               return (
-                <div key={reviewId} className="bg-surface rounded-xl p-lg border border-[#E5E0DA] shadow-ambient-1 transition-all hover:shadow-md">
+                <div key={reviewId} className="bg-surface rounded-xl p-md md:p-lg border border-[#E5E0DA] shadow-ambient-1 transition-all hover:shadow-md">
                   <div className="flex flex-col md:flex-row gap-md">
                     {/* Guest Info Col */}
-                    <div className="md:w-1/4 shrink-0 border-b md:border-b-0 md:border-r border-surface-container-high pb-4 md:pb-0 pr-0 md:pr-4">
-                      <div className="flex items-center gap-sm mb-sm">
-                        <div className="w-12 h-12 rounded-full overflow-hidden bg-surface-variant">
+                    <div className="md:w-1/4 shrink-0 border-b md:border-b-0 md:border-r border-surface-container-high pb-4 md:pb-0 pr-0 md:pr-4 flex flex-row md:flex-col items-center md:items-start gap-4 md:gap-0 justify-between md:justify-start">
+                      <div className="flex items-center gap-sm md:mb-sm">
+                        <div className="w-12 h-12 rounded-full overflow-hidden bg-surface-variant shrink-0">
                           <span className="material-symbols-outlined text-surface-tint w-full h-full flex items-center justify-center text-2xl">person</span>
                         </div>
                         <div>
@@ -291,15 +312,17 @@ export default function ReviewsPage() {
                               </span>
                             )}
                           </h4>
-                          <p className="font-label-sm text-label-sm text-on-surface-variant">Recent Stay</p>
+                          <p className="font-label-sm text-label-sm text-on-surface-variant hidden md:block">Recent Stay</p>
                         </div>
                       </div>
-                      <div className="flex gap-1 text-secondary mb-2">
-                        {[...Array(5)].map((_, i) => (
-                          <span key={i} className="material-symbols-outlined text-[18px]" style={i < (review.rating || 5) ? { fontVariationSettings: "'FILL' 1" } : {}}>star</span>
-                        ))}
+                      <div className="flex flex-col items-end md:items-start">
+                        <div className="flex gap-1 text-secondary md:mb-2">
+                          {[...Array(5)].map((_, i) => (
+                            <span key={i} className="material-symbols-outlined text-[14px] md:text-[18px]" style={i < (review.rating || 5) ? { fontVariationSettings: "'FILL' 1" } : {}}>star</span>
+                          ))}
+                        </div>
+                        <p className="font-label-sm text-label-sm text-outline font-medium">Room {review.roomId}</p>
                       </div>
-                      <p className="font-label-sm text-label-sm text-outline font-medium">Room {review.roomId}</p>
                     </div>
                     
                     {/* Review Content Col */}
@@ -312,7 +335,7 @@ export default function ReviewsPage() {
                         
                         {/* Loading Skeleton */}
                         {isAnalyzing && (
-                          <div className="mt-4 p-lg bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm animate-in fade-in">
+                          <div className="mt-4 p-md md:p-lg bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm animate-in fade-in">
                              <div className="flex items-center gap-2 mb-4">
                                <Spinner className="text-primary w-5 h-5" />
                                <span className="font-label-md text-primary animate-pulse">AI is analyzing this review...</span>
@@ -330,11 +353,11 @@ export default function ReviewsPage() {
                           <div className="mt-4 p-md bg-error/10 border border-error/20 rounded-xl flex items-center justify-between">
                             <div className="flex items-center gap-2 text-error">
                               <span className="material-symbols-outlined">error</span>
-                              <span className="font-label-md">{aiError}</span>
+                              <span className="font-label-md text-sm">{aiError}</span>
                             </div>
                             <button 
                               onClick={() => handleAnalyze(reviewId, review.comment)}
-                              className="px-3 py-1.5 bg-error text-on-error rounded-lg text-sm font-medium hover:bg-error/90 transition-colors"
+                              className="px-3 py-1.5 bg-error text-on-error rounded-lg text-sm font-medium hover:bg-error/90 transition-colors shrink-0"
                             >
                               Retry
                             </button>
@@ -343,7 +366,7 @@ export default function ReviewsPage() {
 
                         {/* AI Analysis Result */}
                         {aiData && !isAnalyzing && (
-                          <div ref={el => resultRefs.current[reviewId] = el} className="mt-4 p-lg bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm animate-in fade-in slide-in-from-top-4">
+                          <div ref={el => resultRefs.current[reviewId] = el} className="mt-4 p-md md:p-lg bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm animate-in fade-in slide-in-from-top-4">
                             <div className="flex items-center justify-between mb-md border-b border-surface-container-high pb-sm">
                               <div className="flex items-center gap-xs">
                                 <span className="material-symbols-outlined text-primary">psychology</span>
@@ -436,25 +459,25 @@ export default function ReviewsPage() {
                       </div>
                       
                       {/* Action Buttons */}
-                      <div className="flex flex-wrap items-center gap-sm mt-4 md:mt-0 justify-end">
+                      <div className="flex flex-wrap items-center gap-sm mt-4 justify-end">
                         <button 
                           onClick={() => openEditModal(review)} 
                           disabled={isAnyAnalyzing}
-                          className="flex items-center gap-2 px-4 py-2 border border-outline-variant text-on-surface-variant rounded-lg hover:bg-surface-container-low transition-colors font-label-md text-label-md disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="flex items-center justify-center gap-2 px-3 md:px-4 py-2 border border-outline-variant text-on-surface-variant rounded-lg hover:bg-surface-container-low transition-colors font-label-md text-label-md disabled:opacity-50 disabled:cursor-not-allowed flex-1 md:flex-none"
                         >
                           <span className="material-symbols-outlined text-[18px]">edit</span>
-                          Edit
+                          <span className="hidden sm:inline">Edit</span>
                         </button>
                         <button 
-                          onClick={() => handleDelete(reviewId)} 
+                          onClick={() => handleDeleteClick(reviewId)} 
                           disabled={isAnyAnalyzing}
-                          className="flex items-center gap-2 px-4 py-2 border border-error text-error rounded-lg hover:bg-error/10 transition-colors font-label-md text-label-md disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="flex items-center justify-center gap-2 px-3 md:px-4 py-2 border border-error text-error rounded-lg hover:bg-error/10 transition-colors font-label-md text-label-md disabled:opacity-50 disabled:cursor-not-allowed flex-1 md:flex-none"
                         >
                           <span className="material-symbols-outlined text-[18px]">delete</span>
-                          Delete
+                          <span className="hidden sm:inline">Delete</span>
                         </button>
                         <button 
-                          className="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg hover:bg-primary-container transition-colors font-label-md text-label-md disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md" 
+                          className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg hover:bg-primary-container transition-colors font-label-md text-label-md disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md w-full md:w-auto mt-2 md:mt-0" 
                           onClick={() => handleAnalyze(reviewId, review.comment)}
                           disabled={isAnyAnalyzing}
                         >
@@ -471,16 +494,41 @@ export default function ReviewsPage() {
         </div>
       </div>
 
+      {/* Confirmation Dialog */}
+      {deleteId && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-surface p-xl rounded-xl w-full max-w-sm shadow-xl border border-outline-variant/30 animate-in zoom-in-95">
+            <div className="flex flex-col items-center text-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-error/10 text-error flex items-center justify-center">
+                <span className="material-symbols-outlined text-3xl">warning</span>
+              </div>
+              <div>
+                <h3 className="font-display-md text-headline-sm text-on-surface mb-2">Delete Review</h3>
+                <p className="text-on-surface-variant">Are you sure you want to delete this review? This action cannot be undone.</p>
+              </div>
+              <div className="flex gap-sm mt-4 w-full">
+                <button onClick={() => setDeleteId(null)} disabled={isDeleting} className="flex-1 px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded-lg transition-colors">
+                  Cancel
+                </button>
+                <button onClick={confirmDelete} disabled={isDeleting} className="flex-1 px-4 py-2 bg-error hover:bg-error/90 text-on-error rounded-lg transition-colors flex justify-center items-center">
+                  {isDeleting ? <Spinner className="w-5 h-5 text-white" /> : 'Delete'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Add/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-surface p-xl rounded-xl w-[90vw] max-w-[500px] shadow-lg border border-outline-variant/30 relative">
+          <div className="bg-surface p-xl rounded-xl w-full max-w-[500px] shadow-lg border border-outline-variant/30 relative animate-in zoom-in-95">
             <h3 className="text-headline-md font-display-md text-primary mb-md">{editingReview ? 'Edit Review' : 'Add New Review'}</h3>
             <form onSubmit={handleSubmit} className="flex flex-col gap-sm">
-              <input required name="user" value={formData.user} onChange={handleInputChange} placeholder="Guest Name" className="w-full p-sm border border-outline-variant rounded bg-surface focus:border-primary outline-none" />
-              <input required name="roomId" value={formData.roomId} onChange={handleInputChange} placeholder="Room ID" className="w-full p-sm border border-outline-variant rounded bg-surface focus:border-primary outline-none" />
-              <input name="title" value={formData.title} onChange={handleInputChange} placeholder="Review Title" className="w-full p-sm border border-outline-variant rounded bg-surface focus:border-primary outline-none" />
-              <select name="rating" value={formData.rating} onChange={handleInputChange} className="w-full p-sm border border-outline-variant rounded bg-surface focus:border-primary outline-none">
+              <input required name="user" value={formData.user} onChange={handleInputChange} placeholder="Guest Name" className="w-full p-sm border border-outline-variant rounded-lg bg-surface focus:border-primary outline-none focus:ring-1 focus:ring-primary transition-all" />
+              <input required name="roomId" value={formData.roomId} onChange={handleInputChange} placeholder="Room ID" className="w-full p-sm border border-outline-variant rounded-lg bg-surface focus:border-primary outline-none focus:ring-1 focus:ring-primary transition-all" />
+              <input name="title" value={formData.title} onChange={handleInputChange} placeholder="Review Title" className="w-full p-sm border border-outline-variant rounded-lg bg-surface focus:border-primary outline-none focus:ring-1 focus:ring-primary transition-all" />
+              <select name="rating" value={formData.rating} onChange={handleInputChange} className="w-full p-sm border border-outline-variant rounded-lg bg-surface focus:border-primary outline-none focus:ring-1 focus:ring-primary transition-all">
                 <option value="5">5 Stars</option>
                 <option value="4">4 Stars</option>
                 <option value="3">3 Stars</option>
@@ -496,7 +544,7 @@ export default function ReviewsPage() {
                   onChange={handleInputChange} 
                   placeholder="Review Comment..." 
                   maxLength={500}
-                  className="w-full p-sm pb-8 border border-outline-variant rounded bg-surface focus:border-primary outline-none min-h-[120px] resize-none"
+                  className="w-full p-sm pb-8 border border-outline-variant rounded-lg bg-surface focus:border-primary outline-none focus:ring-1 focus:ring-primary transition-all min-h-[120px] resize-none"
                 ></textarea>
                 <div className={`absolute bottom-2 right-2 text-xs font-medium ${formData.comment.length > 450 ? 'text-error' : 'text-on-surface-variant'}`}>
                   {formData.comment.length} / 500
@@ -504,8 +552,11 @@ export default function ReviewsPage() {
               </div>
 
               <div className="flex justify-end gap-sm mt-md">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-md py-sm border border-outline-variant rounded hover:bg-surface-container-low transition-colors">Cancel</button>
-                <button type="submit" disabled={isSaving} className="px-md py-sm bg-primary text-white rounded hover:bg-primary/90 transition-colors disabled:opacity-70 shadow-sm">{isSaving ? 'Saving...' : 'Save Review'}</button>
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-md py-sm border border-outline-variant rounded-lg hover:bg-surface-container-low transition-colors">Cancel</button>
+                <button type="submit" disabled={isSaving} className="px-md py-sm bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-70 shadow-sm flex justify-center items-center gap-2">
+                  {isSaving ? <Spinner className="w-4 h-4 text-white" /> : null}
+                  {isSaving ? 'Saving...' : 'Save Review'}
+                </button>
               </div>
             </form>
           </div>

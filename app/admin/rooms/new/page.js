@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { slugify } from "../../../../src/utils/slugify";
@@ -74,20 +74,20 @@ export default function AddNewStay() {
 
 
 
-  const handleInputChange = (e) => {
+  const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  }, []);
 
-  const handleHouseRuleChange = (e) => {
+  const handleHouseRuleChange = useCallback((e) => {
     const { name, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
       houseRules: { ...prev.houseRules, [name]: checked },
     }));
-  };
+  }, []);
 
-  const handleAddRoom = () => {
+  const handleAddRoom = useCallback(() => {
     if (!currentRoom.name || !currentRoom.capacity || !currentRoom.bedType)
       return;
     setRooms((prev) => [
@@ -96,19 +96,19 @@ export default function AddNewStay() {
     ]);
     setCurrentRoom({ name: "", capacity: "", bedType: "" });
     setActiveAmenities([]);
-  };
+  }, [currentRoom, activeAmenities]);
 
-  const handleRemoveRoom = (index) => {
+  const handleRemoveRoom = useCallback((index) => {
     setRooms((prev) => prev.filter((_, i) => i !== index));
-  };
+  }, []);
 
-  const toggleAmenity = (amenity) => {
+  const toggleAmenity = useCallback((amenity) => {
     setActiveAmenities((prev) =>
       prev.includes(amenity)
         ? prev.filter((a) => a !== amenity)
         : [...prev, amenity],
     );
-  };
+  }, []);
 
   const amenitiesList = [
     { id: "wifi", icon: "wifi", label: "WiFi" },
@@ -119,7 +119,7 @@ export default function AddNewStay() {
     { id: "view", icon: "mountain_flag", label: "Valley View" },
   ];
 
-  const handleImageUpload = async (e) => {
+  const handleImageUpload = useCallback(async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -139,18 +139,18 @@ export default function AddNewStay() {
     } finally {
       setIsUploading(false);
     }
-  };
+  }, [showToast]);
 
-  const handleDeleteImage = async (key) => {
+  const handleDeleteImage = useCallback(async (key) => {
     try {
       await fetch(`/api/upload?key=${key}`, { method: "DELETE" });
       setImages((prev) => prev.filter((img) => img.key !== key));
     } catch (err) {
       showToast(err.message, 'error');
     }
-  };
+  }, [showToast]);
 
-  const handlePublish = async () => {
+  const handlePublish = useCallback(async () => {
     try {
       const slug = slugify(formData.title);
       const url = editId ? `/api/rooms/${editId}` : "/api/rooms";
@@ -172,7 +172,7 @@ export default function AddNewStay() {
     } catch (err) {
       showToast(err.message, 'error');
     }
-  };
+  }, [editId, formData, rooms, images, router, showToast]);
 
   return (
     <>
@@ -744,8 +744,8 @@ export default function AddNewStay() {
                     {rooms.length} Rooms Configured
                   </span>
                 </div>
-                <div className="overflow-hidden rounded-xl border border-outline-variant/30 bg-surface/50 backdrop-blur-sm shadow-sm">
-                  <table className="w-full text-left border-collapse">
+                <div className="overflow-x-auto w-full rounded-xl border border-outline-variant/30 bg-surface/50 backdrop-blur-sm shadow-sm">
+                  <table className="w-full min-w-[600px] text-left border-collapse">
                     <thead className="bg-surface-container-low/50 border-b border-outline-variant/30">
                       <tr>
                         <th className="p-md font-label-md text-on-surface-variant">

@@ -1,16 +1,18 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Spinner } from '@/components/ui/spinner';
 
 export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
+  const formRef = useRef(null);
 
-  const showToast = (message, type = 'error') => {
+  const showToast = useCallback((message, type = 'error') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
-  };
+  }, []);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -29,7 +31,7 @@ export default function SettingsPage() {
     fetchSettings();
   }, []);
 
-  const handleSave = async (e) => {
+  const handleSave = useCallback(async (e) => {
     e.preventDefault();
     setIsSaving(true);
     try {
@@ -41,7 +43,8 @@ export default function SettingsPage() {
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [showToast]);
+
   return (
     <>
       <style dangerouslySetInnerHTML={{
@@ -107,10 +110,10 @@ export default function SettingsPage() {
           <div className="grow space-y-xl max-w-4xl">
             {/* Profile Section */}
             <section className="scroll-mt-32" id="profile">
-              <div className="bg-surface rounded-xl p-md ambient-shadow-1 border border-surface-variant">
+              <div className="bg-surface rounded-xl p-md md:p-lg ambient-shadow-1 border border-surface-variant">
                 <h3 className="font-headline-lg text-headline-lg text-primary mb-md">Public Profile</h3>
-                <div className="flex items-start gap-md mb-lg">
-                  <div className="w-24 h-24 rounded-full bg-surface-variant overflow-hidden relative group cursor-pointer">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-md mb-lg">
+                  <div className="w-24 h-24 rounded-full bg-surface-variant overflow-hidden relative group cursor-pointer shrink-0">
                     <img alt="Manager Profile" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPaLbPW89yjVU_AoymBYVjbCuxh-nKZSK56ZZXLZh27xHTiXs-aDVwK6pimbmqliBHtPlUQWWorBXYdPROu7Infz1oz2o0HKecJqUnjTfYGX1KxAEE5jDiMb014S16wcTL2TRc5pvWfvhFR1Aojx-8S7FbETDVoKgDwNFEKRnGhWe_KkJBj27eHrbStsH1dKG8l_rd64RPbsA8KG3Ip7FxdvTyfrHjfdRlPaILzJAm5qNf2NFRkLe6pAtrhbgp6QvTuG69j-d3ajW1" />
                     <div className="absolute inset-0 bg-primary/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                       <span className="material-symbols-outlined text-white" style={{ fontVariationSettings: "'FILL' 0" }}>photo_camera</span>
@@ -123,33 +126,37 @@ export default function SettingsPage() {
                 </div>
 
                 {loading ? (
-                  <div className="py-8 text-center text-on-surface-variant">Loading settings...</div>
+                  <div className="py-12 flex flex-col items-center justify-center gap-4 text-on-surface-variant">
+                    <Spinner className="w-8 h-8 text-primary" />
+                    Loading settings...
+                  </div>
                 ) : (
-                  <form className="space-y-6" onSubmit={handleSave}>
+                  <form className="space-y-6" onSubmit={handleSave} ref={formRef}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="relative group-input border-b border-outline-variant hover:border-primary transition-colors">
-                        <input className="w-full bg-transparent border-none px-0 py-2 pt-6 focus:ring-0 text-body-md text-on-surface" id="firstName" placeholder=" " type="text" defaultValue={settings?.firstName || ""} />
-                        <label className="absolute left-0 top-4 text-outline transition-all duration-200 pointer-events-none font-label-md" htmlFor="firstName">First Name</label>
+                      <div className="relative group-input border-b border-outline-variant hover:border-primary transition-colors mt-4">
+                        <input className="w-full bg-transparent border-none px-0 py-2 focus:ring-0 text-body-md text-on-surface" id="firstName" placeholder=" " type="text" defaultValue={settings?.firstName || ""} />
+                        <label className="absolute left-0 top-2 text-outline transition-all duration-200 pointer-events-none font-label-md" htmlFor="firstName">First Name</label>
                       </div>
-                      <div className="relative group-input border-b border-outline-variant hover:border-primary transition-colors">
-                        <input className="w-full bg-transparent border-none px-0 py-2 pt-6 focus:ring-0 text-body-md text-on-surface" id="lastName" placeholder=" " type="text" defaultValue={settings?.lastName || ""} />
-                        <label className="absolute left-0 top-4 text-outline transition-all duration-200 pointer-events-none font-label-md" htmlFor="lastName">Last Name</label>
+                      <div className="relative group-input border-b border-outline-variant hover:border-primary transition-colors mt-4">
+                        <input className="w-full bg-transparent border-none px-0 py-2 focus:ring-0 text-body-md text-on-surface" id="lastName" placeholder=" " type="text" defaultValue={settings?.lastName || ""} />
+                        <label className="absolute left-0 top-2 text-outline transition-all duration-200 pointer-events-none font-label-md" htmlFor="lastName">Last Name</label>
                       </div>
                     </div>
-                    <div className="relative group-input border-b border-outline-variant hover:border-primary transition-colors">
-                      <input className="w-full bg-transparent border-none px-0 py-2 pt-6 focus:ring-0 text-body-md text-on-surface" id="email" placeholder=" " type="email" defaultValue={settings?.email || ""} readOnly />
-                      <label className="absolute left-0 top-4 text-outline transition-all duration-200 pointer-events-none font-label-md" htmlFor="email">Email Address</label>
+                    <div className="relative group-input border-b border-outline-variant hover:border-primary transition-colors mt-4">
+                      <input className="w-full bg-transparent border-none px-0 py-2 focus:ring-0 text-body-md text-on-surface" id="email" placeholder=" " type="email" defaultValue={settings?.email || ""} readOnly />
+                      <label className="absolute left-0 top-2 text-outline transition-all duration-200 pointer-events-none font-label-md" htmlFor="email">Email Address</label>
                     </div>
-                    <div className="relative group-input border-b border-outline-variant hover:border-primary transition-colors">
-                      <textarea className="w-full bg-transparent border-none px-0 py-2 pt-6 focus:ring-0 text-body-md text-on-surface resize-none" id="bio" placeholder=" " rows="3" defaultValue={settings?.bio || ""}></textarea>
-                      <label className="absolute left-0 top-4 text-outline transition-all duration-200 pointer-events-none font-label-md" htmlFor="bio">Bio</label>
+                    <div className="relative group-input border-b border-outline-variant hover:border-primary transition-colors mt-4">
+                      <textarea className="w-full bg-transparent border-none px-0 py-2 focus:ring-0 text-body-md text-on-surface resize-none" id="bio" placeholder=" " rows="3" defaultValue={settings?.bio || ""}></textarea>
+                      <label className="absolute left-0 top-2 text-outline transition-all duration-200 pointer-events-none font-label-md" htmlFor="bio">Bio</label>
                     </div>
                     <div className="flex justify-end pt-4">
                       <button 
                         disabled={isSaving}
-                        className="px-6 py-2 bg-primary text-on-primary font-label-md rounded-lg hover:bg-primary-container transition-colors" 
+                        className="px-6 py-2 bg-primary text-on-primary font-label-md rounded-lg hover:bg-primary-container transition-colors disabled:opacity-70 flex items-center gap-2 w-full md:w-auto justify-center" 
                         type="submit"
                       >
+                        {isSaving ? <Spinner className="w-4 h-4 text-white" /> : null}
                         {isSaving ? 'Saving...' : 'Save Changes'}
                       </button>
                     </div>

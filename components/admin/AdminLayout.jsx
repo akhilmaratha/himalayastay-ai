@@ -1,13 +1,25 @@
-import React from 'react';
+"use client";
+import React, { useState } from 'react';
 import AdminSidebar from './AdminSidebar';
 import AdminHeader from './AdminHeader';
 
 export default function AdminLayout({ children }) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   return (
     <div className="flex min-h-screen bg-background">
-      <AdminSidebar />
-      <main className="ml-80 flex-1 p-lg max-w-[1400px]">
-        <AdminHeader />
+      {/* Overlay for mobile sidebar */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden" 
+          onClick={() => setIsSidebarOpen(false)}
+        ></div>
+      )}
+      
+      <AdminSidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+      
+      <main className="lg:ml-80 flex-1 p-sm md:p-md lg:p-lg max-w-[1400px] w-full">
+        <AdminHeader onMenuClick={() => setIsSidebarOpen(true)} />
         {children}
       </main>
       {/* Background Elements */}

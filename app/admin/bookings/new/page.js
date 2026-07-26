@@ -1,8 +1,9 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { Spinner } from '@/components/ui/spinner';
 
 export default function NewBooking() {
   const router = useRouter();
@@ -30,12 +31,12 @@ export default function NewBooking() {
     { id: '103', name: 'Stone Hearth Studio', desc: 'Double Bed • Fireplace Access', price: 6800, status: 'Occupied', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBntB526KzqXf9CUcvQRjzR9lFzOYL57zo58rv3UUOuHgfYNcF2ZN5muQ0swOepx21kqMRWqKQdOJnr4RlrNSsKAb0w75FSl0BcQnYDbLpBFc-hnH0nPz__26vKJG-I6j7u5joNI9pNW_mzEwcECsQP0X7mtoJoqvN0Qau0F_CI3tqFdEkBha1MFCBVLeIbVpEVpfBFiEkw2Lldv81dHVQdz2e6jWmutBOKzeRQWcB583Ry-azW3HI0D1oXds3-8m3cgqcvK-fYDBsj' }
   ];
 
-  const handleInputChange = (e) => {
+  const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  }, []);
 
-  const calculateTotal = () => {
+  const calculateTotal = useCallback(() => {
     if (!formData.checkIn || !formData.checkOut || !formData.roomId) return 0;
     const start = new Date(formData.checkIn);
     const end = new Date(formData.checkOut);
@@ -47,14 +48,14 @@ export default function NewBooking() {
     const serviceFee = baseRate * 0.10;
     const tourismTax = 1200;
     return baseRate + serviceFee + tourismTax;
-  };
+  }, [formData.checkIn, formData.checkOut, formData.roomId, rooms]);
 
-  const showToast = (message, type = 'error') => {
+  const showToast = useCallback((message, type = 'error') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
-  };
+  }, []);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     if (!formData.user || !formData.roomId || !formData.checkIn || !formData.checkOut) {
       showToast('Please fill all required fields', 'error');
@@ -86,7 +87,7 @@ export default function NewBooking() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [formData, calculateTotal, router, showToast]);
 
   return (
     <>
@@ -99,12 +100,12 @@ export default function NewBooking() {
       )}
 
       {/* Page Header */}
-      <div className="flex justify-between items-end mb-xl">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-xl gap-4">
         <div>
           <h3 className="font-display-lg text-display-lg text-primary mb-xs">Create Manual Booking</h3>
           <p className="text-body-lg text-on-surface-variant max-w-2xl">Enter the reservation details for guests booking directly via phone or walk-in. Prices update dynamically based on selections.</p>
         </div>
-        <Link href="/admin/bookings" className="flex items-center gap-xs text-secondary font-label-md hover:underline">
+        <Link href="/admin/bookings" className="flex items-center gap-xs text-secondary font-label-md hover:underline whitespace-nowrap">
           <span className="material-symbols-outlined text-sm" data-icon="arrow_back">arrow_back</span>
           Back to Bookings
         </Link>
@@ -115,7 +116,7 @@ export default function NewBooking() {
         {/* Left Column: Guest & Stay */}
         <div className="lg:col-span-8 space-y-gutter">
           {/* Section 1: Guest Information */}
-          <section className="bg-surface/70 backdrop-blur-md p-xl rounded-xl shadow-sm border border-outline-variant/50">
+          <section className="bg-surface/70 backdrop-blur-md p-md md:p-xl rounded-xl shadow-sm border border-outline-variant/50">
             <div className="flex items-center justify-between mb-xl">
               <h4 className="font-headline-lg text-headline-lg text-primary flex items-center gap-sm">
                 <span className="material-symbols-outlined" data-icon="person">person</span>
@@ -149,13 +150,13 @@ export default function NewBooking() {
           </section>
 
           {/* Section 2: Stay Details */}
-          <section className="bg-surface/70 backdrop-blur-md p-xl rounded-xl shadow-sm border border-outline-variant/50">
+          <section className="bg-surface/70 backdrop-blur-md p-md md:p-xl rounded-xl shadow-sm border border-outline-variant/50">
             <h4 className="font-headline-lg text-headline-lg text-primary flex items-center gap-sm mb-xl">
               <span className="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
               Stay Details
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-12 gap-xl">
-              <div className="md:col-span-8 grid grid-cols-2 gap-md">
+              <div className="md:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-md">
                 <div className="flex flex-col gap-xs group">
                   <label className="font-label-sm text-primary uppercase tracking-wider group-focus-within:font-bold transition-all">Check-in *</label>
                   <input required name="checkIn" value={formData.checkIn} onChange={handleInputChange} className="border-0 border-b border-outline-variant bg-transparent px-0 py-2 focus:ring-0 focus:border-primary outline-none transition-all font-body-md" type="date" />
@@ -179,23 +180,25 @@ export default function NewBooking() {
           </section>
 
           {/* Section 3: Room Selection */}
-          <section className="bg-surface/70 backdrop-blur-md p-xl rounded-xl shadow-sm border border-outline-variant/50">
+          <section className="bg-surface/70 backdrop-blur-md p-md md:p-xl rounded-xl shadow-sm border border-outline-variant/50">
             <h4 className="font-headline-lg text-headline-lg text-primary flex items-center gap-sm mb-xl">
               <span className="material-symbols-outlined" data-icon="bed">bed</span>
               Room Selection *
             </h4>
             <div className="space-y-md">
               {rooms.map(room => (
-                <label key={room.id} className={`flex items-center gap-md p-md rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer border-b border-outline-variant last:border-0 group ${room.status !== 'Available' ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}>
-                  <input required disabled={room.status !== 'Available'} name="roomId" value={room.id} checked={formData.roomId === room.id} onChange={handleInputChange} className="w-5 h-5 accent-primary border-outline-variant cursor-pointer" type="radio" />
-                  <div className="w-16 h-16 rounded overflow-hidden shrink-0 relative">
-                    <Image fill className="object-cover" alt={room.name} src={room.img} />
+                <label key={room.id} className={`flex flex-col sm:flex-row items-start sm:items-center gap-md p-md rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer border-b border-outline-variant last:border-0 group ${room.status !== 'Available' ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}>
+                  <div className="flex items-center gap-md w-full sm:w-auto">
+                    <input required disabled={room.status !== 'Available'} name="roomId" value={room.id} checked={formData.roomId === room.id} onChange={handleInputChange} className="w-5 h-5 accent-primary border-outline-variant cursor-pointer" type="radio" />
+                    <div className="w-16 h-16 rounded overflow-hidden shrink-0 relative">
+                      <Image fill sizes="(max-width: 64px) 100vw, 64px" loading="lazy" className="object-cover" alt={room.name} src={room.img} />
+                    </div>
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 mt-2 sm:mt-0">
                     <p className="font-label-md text-primary">{room.name}</p>
                     <p className="text-label-sm text-on-surface-variant">{room.desc}</p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-left sm:text-right mt-2 sm:mt-0 w-full sm:w-auto flex justify-between sm:block">
                     <p className="font-label-md text-primary">₹{room.price.toLocaleString()} <span className="text-label-sm font-normal text-on-surface-variant">/ night</span></p>
                     <span className={`text-[10px] font-bold uppercase tracking-widest ${room.status === 'Available' ? 'text-green-600' : 'text-error'}`}>{room.status}</span>
                   </div>
@@ -208,16 +211,16 @@ export default function NewBooking() {
         {/* Right Column: Payment & Summary */}
         <aside className="lg:col-span-4 space-y-gutter lg:sticky lg:top-28">
           {/* Summary Card */}
-          <section className="bg-primary text-on-primary p-xl rounded-xl shadow-lg">
+          <section className="bg-primary text-on-primary p-md md:p-xl rounded-xl shadow-lg">
             <h4 className="font-display-md text-display-md mb-xl">Booking Summary</h4>
             <div className="space-y-md border-b border-primary-fixed-dim/30 pb-xl mb-xl">
               <div className="flex justify-between font-label-md opacity-80">
                 <span>Base Rate</span>
-                <span>₹{(calculateTotal() - (calculateTotal() > 0 ? 1200 : 0)) / 1.1 || 0}</span>
+                <span>₹{((calculateTotal() - (calculateTotal() > 0 ? 1200 : 0)) / 1.1 || 0).toLocaleString(undefined, {maximumFractionDigits:0})}</span>
               </div>
               <div className="flex justify-between font-label-md opacity-80">
                 <span>Service Fee (10%)</span>
-                <span>₹{((calculateTotal() - (calculateTotal() > 0 ? 1200 : 0)) / 1.1 * 0.1) || 0}</span>
+                <span>₹{(((calculateTotal() - (calculateTotal() > 0 ? 1200 : 0)) / 1.1 * 0.1) || 0).toLocaleString(undefined, {maximumFractionDigits:0})}</span>
               </div>
               <div className="flex justify-between font-label-md opacity-80">
                 <span>Tourism Tax</span>
@@ -242,7 +245,7 @@ export default function NewBooking() {
           </section>
 
           {/* Special Requests */}
-          <section className="bg-surface/70 backdrop-blur-md p-xl rounded-xl shadow-sm border border-outline-variant/50">
+          <section className="bg-surface/70 backdrop-blur-md p-md md:p-xl rounded-xl shadow-sm border border-outline-variant/50">
             <label className="font-headline-lg text-headline-lg text-primary block mb-md">Special Requests</label>
             <textarea 
               name="specialRequests"
@@ -255,7 +258,8 @@ export default function NewBooking() {
 
           {/* Action Buttons */}
           <div className="space-y-md">
-            <button disabled={loading} type="submit" className="w-full bg-primary text-on-primary py-xl rounded-xl font-headline-lg shadow-lg hover:shadow-xl active:scale-95 transition-all disabled:opacity-70">
+            <button disabled={loading} type="submit" className="flex items-center justify-center gap-2 w-full bg-primary text-on-primary py-xl rounded-xl font-headline-lg shadow-lg hover:shadow-xl active:scale-95 transition-all disabled:opacity-70">
+              {loading ? <Spinner className="w-6 h-6 text-white" /> : null}
               {loading ? 'Processing...' : 'Confirm Booking'}
             </button>
             <button type="button" onClick={() => router.push('/admin/bookings')} className="w-full bg-surface-container text-on-surface-variant py-md rounded-xl font-label-md border border-outline-variant hover:bg-surface-variant transition-colors">
