@@ -33,6 +33,18 @@ export default function ReviewsPage() {
     setTimeout(() => setToast(null), 5000);
   };
 
+  const handleDelete = async (reviewId) => {
+    if (!confirm("Are you sure you want to delete this review?")) return;
+    try {
+      const res = await fetch(`/api/reviews/${reviewId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error("Failed to delete review (API endpoint may not exist)");
+      setReviews(prev => prev.filter(r => (r._id || r.id || r.id) !== reviewId));
+      showToast("Review deleted successfully", "success");
+    } catch (err) {
+      showToast(err.message, "error");
+    }
+  };
+
   const handleAnalyze = async (reviewId, comment) => {
     setAnalyzingId(reviewId);
     try {
@@ -64,10 +76,10 @@ export default function ReviewsPage() {
         }
       `}} />
       
-      {/* Error Toast */}
+      {/* Toast */}
       {toast && (
-        <div className="fixed bottom-4 right-4 z-50 bg-error text-on-error px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-in slide-in-from-bottom-5">
-          <span className="material-symbols-outlined">error</span>
+        <div className={`fixed bottom-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-in slide-in-from-bottom-5 ${toast.type === 'error' ? 'bg-error text-on-error' : 'bg-primary text-on-primary'}`}>
+          <span className="material-symbols-outlined">{toast.type === 'error' ? 'error' : 'check_circle'}</span>
           <span className="font-label-md">{toast.message}</span>
         </div>
       )}
@@ -281,7 +293,11 @@ export default function ReviewsPage() {
                       </div>
                       
                       {/* Action Buttons */}
-                      <div className="flex items-center gap-sm mt-4 md:mt-0 justify-end">
+                      <div className="flex flex-wrap items-center gap-sm mt-4 md:mt-0 justify-end">
+                        <button onClick={() => handleDelete(review._id || review.id || reviewId)} className="flex items-center gap-2 px-4 py-2 border border-error text-error rounded-lg hover:bg-error/10 transition-colors font-label-md text-label-md">
+                          <span className="material-symbols-outlined text-[18px]">delete</span>
+                          Delete
+                        </button>
                         <button className="flex items-center gap-2 px-4 py-2 border border-primary-container text-primary-container rounded-lg hover:bg-surface-container-low transition-colors font-label-md text-label-md">
                           <span className="material-symbols-outlined text-[18px]">reply</span>
                           Reply
