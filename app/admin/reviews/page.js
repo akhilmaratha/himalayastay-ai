@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Spinner } from '@/components/ui/spinner';
 
 export default function ReviewsPage() {
@@ -10,6 +10,10 @@ export default function ReviewsPage() {
   // AI Feature States
   const [analyzingId, setAnalyzingId] = useState(null);
   const [aiResults, setAiResults] = useState({});
+  const [aiErrors, setAiErrors] = useState({});
+  const [copiedId, setCopiedId] = useState(null);
+  const resultRefs = useRef({});
+
   const [toast, setToast] = useState(null);
 
   // Modal states
@@ -59,7 +63,14 @@ export default function ReviewsPage() {
   };
 
   const handleAnalyze = async (reviewId, comment) => {
+    if (!comment || comment.trim().length === 0) {
+      setAiErrors(prev => ({ ...prev, [reviewId]: "Review comment is empty. Cannot analyze." }));
+      return;
+    }
+
     setAnalyzingId(reviewId);
+    setAiErrors(prev => ({ ...prev, [reviewId]: null }));
+    
     try {
       const res = await fetch("/api/ai/analyze-review", { 
         method: "POST",
@@ -73,11 +84,26 @@ export default function ReviewsPage() {
       }
       
       setAiResults(prev => ({ ...prev, [reviewId]: data }));
+      
+      // Smooth scroll to result
+      setTimeout(() => {
+        if (resultRefs.current[reviewId]) {
+          resultRefs.current[reviewId].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }, 100);
+      
     } catch(e) {
-      showToast(e.message, 'error');
+      setAiErrors(prev => ({ ...prev, [reviewId]: e.message || "An unexpected error occurred during analysis." }));
+      showToast("Analysis failed", 'error');
     } finally {
       setAnalyzingId(null);
     }
+  };
+
+  const handleCopy = (text, id) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
   };
 
   const handleInputChange = (e) => {
@@ -131,6 +157,13 @@ export default function ReviewsPage() {
         __html: `
         .shadow-ambient-1 {
             box-shadow: 0 4px 12px rgba(45, 71, 57, 0.05);
+        }
+        .skeleton-pulse {
+          animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: .5; }
         }
       `}} />
       
@@ -237,6 +270,8 @@ export default function ReviewsPage() {
               const reviewId = review._id || review.id || idx;
               const isAnalyzing = analyzingId === reviewId;
               const aiData = aiResults[reviewId];
+              const aiError = aiErrors[reviewId];
+              const isAnyAnalyzing = analyzingId !== null;
 
               return (
                 <div key={reviewId} className="bg-surface rounded-xl p-lg border border-[#E5E0DA] shadow-ambient-1 transition-all hover:shadow-md">
@@ -248,7 +283,14 @@ export default function ReviewsPage() {
                           <span className="material-symbols-outlined text-surface-tint w-full h-full flex items-center justify-center text-2xl">person</span>
                         </div>
                         <div>
-                          <h4 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">{review.user || "Guest"}</h4>
+                          <h4 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface flex items-center gap-1">
+                            {review.user || "Guest"}
+                            {aiData && !isAnalyzing && (
+                              <span className="ml-1 px-1.5 py-0.5 bg-primary-container text-on-primary-container text-[10px] uppercase font-bold rounded flex items-center gap-0.5">
+                                <span className="material-symbols-outlined text-[12px]">psychology</span> AI
+                              </span>
+                            )}
+                          </h4>
                           <p className="font-label-sm text-label-sm text-on-surface-variant">Recent Stay</p>
                         </div>
                       </div>
@@ -268,24 +310,60 @@ export default function ReviewsPage() {
                           {review.comment}
                         </p>
                         
+                        {/* Loading Skeleton */}
+                        {isAnalyzing && (
+                          <div className="mt-4 p-lg bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm animate-in fade-in">
+                             <div className="flex items-center gap-2 mb-4">
+                               <Spinner className="text-primary w-5 h-5" />
+                               <span className="font-label-md text-primary animate-pulse">AI is analyzing this review...</span>
+                             </div>
+                             <div className="space-y-3">
+                               <div className="h-4 bg-surface-container-high rounded w-3/4 skeleton-pulse"></div>
+                               <div className="h-4 bg-surface-container-high rounded w-1/2 skeleton-pulse"></div>
+                               <div className="h-16 bg-surface-container-high rounded w-full skeleton-pulse mt-4"></div>
+                             </div>
+                          </div>
+                        )}
+
+                        {/* Error State */}
+                        {aiError && !isAnalyzing && (
+                          <div className="mt-4 p-md bg-error/10 border border-error/20 rounded-xl flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-error">
+                              <span className="material-symbols-outlined">error</span>
+                              <span className="font-label-md">{aiError}</span>
+                            </div>
+                            <button 
+                              onClick={() => handleAnalyze(reviewId, review.comment)}
+                              className="px-3 py-1.5 bg-error text-on-error rounded-lg text-sm font-medium hover:bg-error/90 transition-colors"
+                            >
+                              Retry
+                            </button>
+                          </div>
+                        )}
+
                         {/* AI Analysis Result */}
-                        {aiData && (
-                          <div className="mt-4 p-lg bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm animate-in fade-in slide-in-from-top-4">
-                            <div className="flex items-center gap-xs mb-md border-b border-surface-container-high pb-sm">
-                              <span className="material-symbols-outlined text-primary">psychology</span>
-                              <h4 className="font-headline-sm text-headline-sm text-primary">AI Insights & Action Plan</h4>
+                        {aiData && !isAnalyzing && (
+                          <div ref={el => resultRefs.current[reviewId] = el} className="mt-4 p-lg bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm animate-in fade-in slide-in-from-top-4">
+                            <div className="flex items-center justify-between mb-md border-b border-surface-container-high pb-sm">
+                              <div className="flex items-center gap-xs">
+                                <span className="material-symbols-outlined text-primary">psychology</span>
+                                <h4 className="font-headline-sm text-headline-sm text-primary">AI Insights & Action Plan</h4>
+                              </div>
                             </div>
                             
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-md mb-md">
                               <div>
                                 <p className="font-label-sm text-on-surface-variant mb-1 uppercase tracking-wider">Sentiment</p>
-                                <p className="font-body-lg font-medium" style={{ color: aiData.sentiment?.toLowerCase() === 'positive' ? '#2e7d32' : aiData.sentiment?.toLowerCase() === 'negative' ? '#c62828' : '#e65100' }}>
+                                <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm font-bold" style={{ backgroundColor: aiData.sentiment?.toLowerCase() === 'positive' ? '#e8f5e9' : aiData.sentiment?.toLowerCase() === 'negative' ? '#ffebee' : '#fff3e0', color: aiData.sentiment?.toLowerCase() === 'positive' ? '#2e7d32' : aiData.sentiment?.toLowerCase() === 'negative' ? '#c62828' : '#e65100' }}>
+                                  <span className="material-symbols-outlined text-[16px]">
+                                    {aiData.sentiment?.toLowerCase() === 'positive' ? 'sentiment_satisfied' : aiData.sentiment?.toLowerCase() === 'negative' ? 'sentiment_dissatisfied' : 'sentiment_neutral'}
+                                  </span>
                                   {aiData.sentiment || "Neutral"}
-                                </p>
+                                </div>
                               </div>
                               <div>
                                 <p className="font-label-sm text-on-surface-variant mb-1 uppercase tracking-wider">Suggested Rating</p>
-                                <div className="flex items-center gap-1 font-body-lg font-medium text-secondary">
+                                <div className="flex items-center gap-1 font-body-lg font-medium text-secondary bg-secondary-container/30 px-3 py-1 rounded-full inline-flex">
                                   <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                                   {aiData.rating || "N/A"}
                                 </div>
@@ -294,24 +372,24 @@ export default function ReviewsPage() {
                             
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-md mb-md">
                               {aiData.positivePoints && aiData.positivePoints.length > 0 && (
-                                <div className="bg-surface rounded-lg p-md border border-outline-variant">
+                                <div className="bg-[#f0f7f1] rounded-lg p-md border border-[#c8e6c9]">
                                   <div className="flex items-center gap-xs text-[#2e7d32] mb-sm">
                                     <span className="material-symbols-outlined text-sm">thumb_up</span>
-                                    <h5 className="font-label-md">Positive Points</h5>
+                                    <h5 className="font-label-md font-bold">Positive Points</h5>
                                   </div>
-                                  <ul className="list-disc pl-5 text-sm text-on-surface-variant space-y-1">
+                                  <ul className="list-disc pl-5 text-sm text-[#1b5e20] space-y-1 marker:text-[#4caf50]">
                                     {aiData.positivePoints.map((pt, i) => <li key={i}>{pt}</li>)}
                                   </ul>
                                 </div>
                               )}
                               
                               {aiData.negativePoints && aiData.negativePoints.length > 0 && (
-                                <div className="bg-surface rounded-lg p-md border border-outline-variant">
+                                <div className="bg-[#fff0f0] rounded-lg p-md border border-[#ffcdd2]">
                                   <div className="flex items-center gap-xs text-[#c62828] mb-sm">
                                     <span className="material-symbols-outlined text-sm">thumb_down</span>
-                                    <h5 className="font-label-md">Areas of Concern</h5>
+                                    <h5 className="font-label-md font-bold">Areas of Concern</h5>
                                   </div>
-                                  <ul className="list-disc pl-5 text-sm text-on-surface-variant space-y-1">
+                                  <ul className="list-disc pl-5 text-sm text-[#b71c1c] space-y-1 marker:text-[#ef5350]">
                                     {aiData.negativePoints.map((pt, i) => <li key={i}>{pt}</li>)}
                                   </ul>
                                 </div>
@@ -319,29 +397,36 @@ export default function ReviewsPage() {
                             </div>
 
                             {aiData.suggestions && aiData.suggestions.length > 0 && (
-                              <div className="mb-md bg-[#F4F1EE] p-md rounded-lg border border-[#E5E0DA]">
-                                <div className="flex items-center gap-xs text-secondary mb-sm">
+                              <div className="mb-md bg-[#fff8e1] p-md rounded-lg border border-[#ffecb3]">
+                                <div className="flex items-center gap-xs text-[#f57f17] mb-sm">
                                   <span className="material-symbols-outlined text-sm">lightbulb</span>
-                                  <h5 className="font-label-md">Improvement Suggestions</h5>
+                                  <h5 className="font-label-md font-bold">Improvement Suggestions</h5>
                                 </div>
-                                <ul className="list-disc pl-5 text-sm text-on-surface-variant space-y-1">
+                                <ul className="list-disc pl-5 text-sm text-[#e65100] space-y-1 marker:text-[#ffb300]">
                                   {aiData.suggestions.map((sug, i) => <li key={i}>{sug}</li>)}
                                 </ul>
                               </div>
                             )}
 
                             {aiData.ownerReply && (
-                              <div className="bg-primary-container p-md rounded-lg">
-                                <div className="flex items-center justify-between mb-sm text-on-primary-container">
+                              <div className="bg-primary-container p-md rounded-lg relative overflow-hidden group">
+                                <div className="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+                                <div className="flex items-center justify-between mb-sm text-on-primary-container pl-2">
                                   <div className="flex items-center gap-xs">
                                     <span className="material-symbols-outlined text-sm">edit_note</span>
-                                    <h5 className="font-label-md">AI Generated Reply</h5>
+                                    <h5 className="font-label-md font-bold">AI Generated Reply</h5>
                                   </div>
-                                  <button className="text-xs bg-primary text-on-primary px-2 py-1 rounded hover:bg-primary/90 flex items-center gap-1 transition-colors" onClick={() => navigator.clipboard.writeText(aiData.ownerReply)}>
-                                    <span className="material-symbols-outlined text-[14px]">content_copy</span> Copy
+                                  <button 
+                                    className={`text-xs px-3 py-1.5 rounded flex items-center gap-1.5 transition-colors font-medium shadow-sm ${copiedId === reviewId ? 'bg-green-500 text-white' : 'bg-primary text-on-primary hover:bg-primary/90'}`}
+                                    onClick={() => handleCopy(aiData.ownerReply, reviewId)}
+                                  >
+                                    <span className="material-symbols-outlined text-[14px]">
+                                      {copiedId === reviewId ? 'check' : 'content_copy'}
+                                    </span> 
+                                    {copiedId === reviewId ? 'Copied!' : 'Copy Reply'}
                                   </button>
                                 </div>
-                                <p className="text-sm text-on-primary-container/80 italic leading-relaxed border-l-2 border-primary pl-3">
+                                <p className="text-sm text-on-primary-container/90 italic leading-relaxed pl-3 font-medium">
                                   &quot;{aiData.ownerReply}&quot;
                                 </p>
                               </div>
@@ -352,30 +437,29 @@ export default function ReviewsPage() {
                       
                       {/* Action Buttons */}
                       <div className="flex flex-wrap items-center gap-sm mt-4 md:mt-0 justify-end">
-                        <button onClick={() => openEditModal(review)} className="flex items-center gap-2 px-4 py-2 border border-outline-variant text-on-surface-variant rounded-lg hover:bg-surface-container-low transition-colors font-label-md text-label-md">
+                        <button 
+                          onClick={() => openEditModal(review)} 
+                          disabled={isAnyAnalyzing}
+                          className="flex items-center gap-2 px-4 py-2 border border-outline-variant text-on-surface-variant rounded-lg hover:bg-surface-container-low transition-colors font-label-md text-label-md disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
                           <span className="material-symbols-outlined text-[18px]">edit</span>
                           Edit
                         </button>
-                        <button onClick={() => handleDelete(reviewId)} className="flex items-center gap-2 px-4 py-2 border border-error text-error rounded-lg hover:bg-error/10 transition-colors font-label-md text-label-md">
+                        <button 
+                          onClick={() => handleDelete(reviewId)} 
+                          disabled={isAnyAnalyzing}
+                          className="flex items-center gap-2 px-4 py-2 border border-error text-error rounded-lg hover:bg-error/10 transition-colors font-label-md text-label-md disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
                           <span className="material-symbols-outlined text-[18px]">delete</span>
                           Delete
                         </button>
                         <button 
-                          className="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg hover:bg-primary-container transition-colors font-label-md text-label-md disabled:opacity-50" 
+                          className="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg hover:bg-primary-container transition-colors font-label-md text-label-md disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md" 
                           onClick={() => handleAnalyze(reviewId, review.comment)}
-                          disabled={isAnalyzing}
+                          disabled={isAnyAnalyzing}
                         >
-                          {isAnalyzing ? (
-                            <>
-                              <Spinner className="text-on-primary" />
-                              Analyzing...
-                            </>
-                          ) : (
-                            <>
-                              <span className="material-symbols-outlined text-[18px]">psychology</span>
-                              Analyze with AI
-                            </>
-                          )}
+                          <span className="material-symbols-outlined text-[18px]">psychology</span>
+                          {aiData ? 'Re-Analyze' : 'Analyze with AI'}
                         </button>
                       </div>
                     </div>
@@ -390,7 +474,7 @@ export default function ReviewsPage() {
       {/* Add/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-surface p-xl rounded-xl w-[90vw] max-w-[500px] shadow-lg border border-outline-variant/30">
+          <div className="bg-surface p-xl rounded-xl w-[90vw] max-w-[500px] shadow-lg border border-outline-variant/30 relative">
             <h3 className="text-headline-md font-display-md text-primary mb-md">{editingReview ? 'Edit Review' : 'Add New Review'}</h3>
             <form onSubmit={handleSubmit} className="flex flex-col gap-sm">
               <input required name="user" value={formData.user} onChange={handleInputChange} placeholder="Guest Name" className="w-full p-sm border border-outline-variant rounded bg-surface focus:border-primary outline-none" />
@@ -403,10 +487,25 @@ export default function ReviewsPage() {
                 <option value="2">2 Stars</option>
                 <option value="1">1 Star</option>
               </select>
-              <textarea required name="comment" value={formData.comment} onChange={handleInputChange} placeholder="Review Comment..." className="w-full p-sm border border-outline-variant rounded bg-surface focus:border-primary outline-none min-h-[100px] resize-none"></textarea>
+              
+              <div className="relative">
+                <textarea 
+                  required 
+                  name="comment" 
+                  value={formData.comment} 
+                  onChange={handleInputChange} 
+                  placeholder="Review Comment..." 
+                  maxLength={500}
+                  className="w-full p-sm pb-8 border border-outline-variant rounded bg-surface focus:border-primary outline-none min-h-[120px] resize-none"
+                ></textarea>
+                <div className={`absolute bottom-2 right-2 text-xs font-medium ${formData.comment.length > 450 ? 'text-error' : 'text-on-surface-variant'}`}>
+                  {formData.comment.length} / 500
+                </div>
+              </div>
+
               <div className="flex justify-end gap-sm mt-md">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-md py-sm border border-outline-variant rounded hover:bg-surface-container-low transition-colors">Cancel</button>
-                <button type="submit" disabled={isSaving} className="px-md py-sm bg-primary text-white rounded hover:bg-primary/90 transition-colors disabled:opacity-70">{isSaving ? 'Saving...' : 'Save Review'}</button>
+                <button type="submit" disabled={isSaving} className="px-md py-sm bg-primary text-white rounded hover:bg-primary/90 transition-colors disabled:opacity-70 shadow-sm">{isSaving ? 'Saving...' : 'Save Review'}</button>
               </div>
             </form>
           </div>
