@@ -12,6 +12,12 @@ export default function AddNewStay() {
   const [images, setImages] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const [step, setStep] = useState(1);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
   const [activeAmenities, setActiveAmenities] = useState([]);
   const [formData, setFormData] = useState({
     title: "",
@@ -53,7 +59,7 @@ export default function AddNewStay() {
       if (data.rooms) setRooms(data.rooms);
       if (data.images) setImages(data.images);
     } catch (err) {
-      alert(err.message);
+      showToast(err.message, 'error');
     }
   };
   useEffect(() => {
@@ -129,7 +135,7 @@ export default function AddNewStay() {
       const data = await res.json();
       setImages((prev) => [...prev, { url: data.url, key: data.key }]);
     } catch (err) {
-      alert(err.message);
+      showToast(err.message, 'error');
     } finally {
       setIsUploading(false);
     }
@@ -140,7 +146,7 @@ export default function AddNewStay() {
       await fetch(`/api/upload?key=${key}`, { method: "DELETE" });
       setImages((prev) => prev.filter((img) => img.key !== key));
     } catch (err) {
-      alert(err.message);
+      showToast(err.message, 'error');
     }
   };
 
@@ -161,10 +167,10 @@ export default function AddNewStay() {
         }),
       });
       if (!res.ok) throw new Error(`Failed to ${editId ? 'update' : 'create'} stay`);
-      alert(`Stay ${editId ? 'updated' : 'created'} successfully!`);
-      router.push("/admin/rooms");
+      showToast(`Stay ${editId ? 'updated' : 'created'} successfully!`, 'success');
+      setTimeout(() => router.push("/admin/rooms"), 1500);
     } catch (err) {
-      alert(err.message);
+      showToast(err.message, 'error');
     }
   };
 
@@ -184,6 +190,14 @@ export default function AddNewStay() {
       `,
         }}
       />
+
+      {/* Toast */}
+      {toast && (
+        <div className={`fixed bottom-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-in slide-in-from-bottom-5 ${toast.type === 'error' ? 'bg-error text-on-error' : 'bg-primary text-on-primary'}`}>
+          <span className="material-symbols-outlined">{toast.type === 'error' ? 'error' : 'check_circle'}</span>
+          <span className="font-label-md">{toast.message}</span>
+        </div>
+      )}
 
       <div className="flex justify-between items-center mb-xl">
         <h2 className="font-display-md text-headline-lg text-primary">

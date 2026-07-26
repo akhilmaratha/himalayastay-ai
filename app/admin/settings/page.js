@@ -5,6 +5,12 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -29,9 +35,9 @@ export default function SettingsPage() {
     try {
       const res = await fetch('/api/settings', { method: 'PUT' });
       if (!res.ok) throw new Error('Failed to update settings');
-      alert('Settings updated successfully!');
+      showToast('Settings updated successfully!', 'success');
     } catch (err) {
-      alert(err.message);
+      showToast(err.message, 'error');
     } finally {
       setIsSaving(false);
     }
@@ -52,6 +58,15 @@ export default function SettingsPage() {
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}} />
+
+      {/* Toast */}
+      {toast && (
+        <div className={`fixed bottom-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-in slide-in-from-bottom-5 ${toast.type === 'error' ? 'bg-error text-on-error' : 'bg-primary text-on-primary'}`}>
+          <span className="material-symbols-outlined">{toast.type === 'error' ? 'error' : 'check_circle'}</span>
+          <span className="font-label-md">{toast.message}</span>
+        </div>
+      )}
+
       <div className="px-sm md:px-gutter max-w-container-max mx-auto w-full pb-xl">
         {/* Page Header */}
         <div className="mb-xl">

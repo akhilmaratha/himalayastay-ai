@@ -12,19 +12,32 @@ export default function ReviewsPage() {
   const [aiResults, setAiResults] = useState({});
   const [toast, setToast] = useState(null);
 
+  // Modal states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingReview, setEditingReview] = useState(null);
+  const [formData, setFormData] = useState({
+    user: '',
+    roomId: '',
+    rating: 5,
+    title: '',
+    comment: ''
+  });
+  const [isSaving, setIsSaving] = useState(false);
+
+  const fetchReviews = async () => {
+    try {
+      const res = await fetch("/api/reviews");
+      if (!res.ok) throw new Error("Failed to load reviews");
+      const data = await res.json();
+      setReviews(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        const res = await fetch("/api/reviews");
-        if (!res.ok) throw new Error("Failed to load reviews");
-        const data = await res.json();
-        setReviews(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchReviews();
   }, []);
 
@@ -37,8 +50,8 @@ export default function ReviewsPage() {
     if (!confirm("Are you sure you want to delete this review?")) return;
     try {
       const res = await fetch(`/api/reviews/${reviewId}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error("Failed to delete review (API endpoint may not exist)");
-      setReviews(prev => prev.filter(r => (r._id || r.id || r.id) !== reviewId));
+      if (!res.ok) throw new Error("Failed to delete review");
+      setReviews(prev => prev.filter(r => (r._id || r.id) !== reviewId));
       showToast("Review deleted successfully", "success");
     } catch (err) {
       showToast(err.message, "error");
@@ -67,6 +80,51 @@ export default function ReviewsPage() {
     }
   };
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const openAddModal = () => {
+    setEditingReview(null);
+    setFormData({ user: '', roomId: '', rating: 5, title: '', comment: '' });
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (review) => {
+    setEditingReview(review);
+    setFormData({
+      user: review.user || '',
+      roomId: review.roomId || '',
+      rating: review.rating || 5,
+      title: review.title || '',
+      comment: review.comment || ''
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSaving(true);
+    try {
+      const url = editingReview ? `/api/reviews/${editingReview._id || editingReview.id}` : '/api/reviews';
+      const method = editingReview ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      if (!res.ok) throw new Error(`Failed to ${editingReview ? 'update' : 'add'} review`);
+      await fetchReviews();
+      setIsModalOpen(false);
+      showToast(`Review ${editingReview ? 'updated' : 'added'} successfully`, 'success');
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <>
       <style dangerouslySetInnerHTML={{
@@ -91,13 +149,13 @@ export default function ReviewsPage() {
             <p className="font-body-lg text-body-lg text-on-surface-variant">Insights and sentiments from recent stays.</p>
           </div>
           <div className="hidden sm:flex gap-sm">
+            <button onClick={openAddModal} className="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg hover:bg-primary-container transition-colors shadow-sm">
+              <span className="material-symbols-outlined text-sm">add</span>
+              <span className="font-label-md text-label-md">Add Review</span>
+            </button>
             <button className="flex items-center gap-2 px-4 py-2 border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors">
               <span className="material-symbols-outlined text-sm">filter_list</span>
               <span className="font-label-md text-label-md">Filter</span>
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2 border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors">
-              <span className="material-symbols-outlined text-sm">download</span>
-              <span className="font-label-md text-label-md">Export</span>
             </button>
           </div>
         </div>
@@ -176,7 +234,7 @@ export default function ReviewsPage() {
             </div>
           ) : (
             reviews.map((review, idx) => {
-              const reviewId = review.id || idx;
+              const reviewId = review._id || review.id || idx;
               const isAnalyzing = analyzingId === reviewId;
               const aiData = aiResults[reviewId];
 
@@ -294,13 +352,13 @@ export default function ReviewsPage() {
                       
                       {/* Action Buttons */}
                       <div className="flex flex-wrap items-center gap-sm mt-4 md:mt-0 justify-end">
-                        <button onClick={() => handleDelete(review._id || review.id || reviewId)} className="flex items-center gap-2 px-4 py-2 border border-error text-error rounded-lg hover:bg-error/10 transition-colors font-label-md text-label-md">
+                        <button onClick={() => openEditModal(review)} className="flex items-center gap-2 px-4 py-2 border border-outline-variant text-on-surface-variant rounded-lg hover:bg-surface-container-low transition-colors font-label-md text-label-md">
+                          <span className="material-symbols-outlined text-[18px]">edit</span>
+                          Edit
+                        </button>
+                        <button onClick={() => handleDelete(reviewId)} className="flex items-center gap-2 px-4 py-2 border border-error text-error rounded-lg hover:bg-error/10 transition-colors font-label-md text-label-md">
                           <span className="material-symbols-outlined text-[18px]">delete</span>
                           Delete
-                        </button>
-                        <button className="flex items-center gap-2 px-4 py-2 border border-primary-container text-primary-container rounded-lg hover:bg-surface-container-low transition-colors font-label-md text-label-md">
-                          <span className="material-symbols-outlined text-[18px]">reply</span>
-                          Reply
                         </button>
                         <button 
                           className="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg hover:bg-primary-container transition-colors font-label-md text-label-md disabled:opacity-50" 
@@ -327,14 +385,33 @@ export default function ReviewsPage() {
             })
           )}
         </div>
-
-        <div className="mt-lg flex justify-center pb-xl">
-          <button className="font-label-md text-label-md text-primary-container hover:text-primary transition-colors flex items-center gap-2">
-            Load More Reviews
-            <span className="material-symbols-outlined text-[18px]">expand_more</span>
-          </button>
-        </div>
       </div>
+
+      {/* Add/Edit Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-surface p-xl rounded-xl w-[90vw] max-w-[500px] shadow-lg border border-outline-variant/30">
+            <h3 className="text-headline-md font-display-md text-primary mb-md">{editingReview ? 'Edit Review' : 'Add New Review'}</h3>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-sm">
+              <input required name="user" value={formData.user} onChange={handleInputChange} placeholder="Guest Name" className="w-full p-sm border border-outline-variant rounded bg-surface focus:border-primary outline-none" />
+              <input required name="roomId" value={formData.roomId} onChange={handleInputChange} placeholder="Room ID" className="w-full p-sm border border-outline-variant rounded bg-surface focus:border-primary outline-none" />
+              <input name="title" value={formData.title} onChange={handleInputChange} placeholder="Review Title" className="w-full p-sm border border-outline-variant rounded bg-surface focus:border-primary outline-none" />
+              <select name="rating" value={formData.rating} onChange={handleInputChange} className="w-full p-sm border border-outline-variant rounded bg-surface focus:border-primary outline-none">
+                <option value="5">5 Stars</option>
+                <option value="4">4 Stars</option>
+                <option value="3">3 Stars</option>
+                <option value="2">2 Stars</option>
+                <option value="1">1 Star</option>
+              </select>
+              <textarea required name="comment" value={formData.comment} onChange={handleInputChange} placeholder="Review Comment..." className="w-full p-sm border border-outline-variant rounded bg-surface focus:border-primary outline-none min-h-[100px] resize-none"></textarea>
+              <div className="flex justify-end gap-sm mt-md">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-md py-sm border border-outline-variant rounded hover:bg-surface-container-low transition-colors">Cancel</button>
+                <button type="submit" disabled={isSaving} className="px-md py-sm bg-primary text-white rounded hover:bg-primary/90 transition-colors disabled:opacity-70">{isSaving ? 'Saving...' : 'Save Review'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }

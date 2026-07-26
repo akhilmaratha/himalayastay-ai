@@ -70,6 +70,18 @@ export default function BookingsManagement() {
     }
   };
 
+  const handleDelete = async (id) => {
+    if (!confirm('Are you sure you want to delete this booking?')) return;
+    try {
+      const res = await fetch(`/api/bookings/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete booking');
+      await fetchBookings();
+      showToast('Booking deleted successfully');
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  };
+
   return (
     <>
       {/* Header Section */}
@@ -161,7 +173,8 @@ export default function BookingsManagement() {
                     <td className="px-gutter py-md text-center">
                       <div className="flex justify-center gap-xs opacity-0 group-hover:opacity-100 transition-opacity">
                         <button className="p-xs hover:bg-surface-container-high rounded-full text-on-surface-variant transition-colors"><span className="material-symbols-outlined text-[20px]">visibility</span></button>
-                        <button onClick={() => openEditModal(booking)} className="p-xs hover:bg-surface-container-high rounded-full text-on-surface-variant transition-colors"><span className="material-symbols-outlined text-[20px]">edit</span></button>
+                        <button onClick={() => openEditModal(booking)} className="p-xs hover:bg-surface-container-high rounded-full text-on-surface-variant hover:text-primary transition-colors"><span className="material-symbols-outlined text-[20px]">edit</span></button>
+                        <button onClick={() => handleDelete(booking._id || booking.id)} className="p-xs hover:bg-surface-container-high rounded-full text-on-surface-variant hover:text-error transition-colors"><span className="material-symbols-outlined text-[20px]">delete</span></button>
                       </div>
                     </td>
                   </tr>

@@ -7,6 +7,12 @@ export default function GalleryPage() {
   const [error, setError] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const fetchImages = async () => {
     setLoading(true);
@@ -59,11 +65,11 @@ export default function GalleryPage() {
         body: formData,
       });
       if (!res.ok) throw new Error('Failed to upload photo');
-      alert('Photo uploaded successfully! Note: API does not link it to a room automatically.');
+      showToast('Photo uploaded successfully! Note: API does not link it to a room automatically.', 'success');
       // Optionally refetch images if the backend auto-links, but here we just alert
       // fetchImages();
     } catch (err) {
-      alert(err.message);
+      showToast(err.message, 'error');
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -72,7 +78,7 @@ export default function GalleryPage() {
 
   const handleDelete = async (key) => {
     if (!key) {
-      alert("Cannot delete this image (no key found).");
+      showToast("Cannot delete this image (no key found).", "error");
       return;
     }
     if (!confirm("Are you sure you want to delete this image?")) return;
@@ -80,11 +86,11 @@ export default function GalleryPage() {
     try {
       const res = await fetch(`/api/upload?key=${key}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete photo');
-      alert('Photo deleted successfully!');
+      showToast('Photo deleted successfully!', 'success');
       // Remove from UI
       setImages(prev => prev.filter(img => img.key !== key));
     } catch (err) {
-      alert(err.message);
+      showToast(err.message, 'error');
     }
   };
 
@@ -96,6 +102,15 @@ export default function GalleryPage() {
             opacity: 1;
         }
       `}} />
+
+      {/* Toast */}
+      {toast && (
+        <div className={`fixed bottom-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-in slide-in-from-bottom-5 ${toast.type === 'error' ? 'bg-error text-on-error' : 'bg-primary text-on-primary'}`}>
+          <span className="material-symbols-outlined">{toast.type === 'error' ? 'error' : 'check_circle'}</span>
+          <span className="font-label-md">{toast.message}</span>
+        </div>
+      )}
+
       <div className="px-sm md:px-gutter max-w-container-max mx-auto w-full">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-xl gap-md">
