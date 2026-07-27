@@ -62,11 +62,11 @@ const Navbar = memo(function Navbar() {
       } dark:bg-surface-container/80`}
       id="top-nav"
     >
-      <div className="max-w-container-max mx-auto px-4 md:px-md flex items-center justify-between h-20">
+      <div className="max-w-container-max mx-auto px-4 md:px-md flex items-center justify-between h-12 md:h-20">
         {/* Brand */}
         <Link
           href="/"
-          className="font-display-md text-display-md font-bold text-primary dark:text-inverse-primary tracking-tight"
+          className="text-smn md:text-2xl font-display-md font-bold text-primary dark:text-inverse-primary tracking-tight"
         >
           Himalayan Stays
         </Link>

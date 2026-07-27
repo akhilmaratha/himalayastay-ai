@@ -300,7 +300,7 @@ export default function RoomsPage() {
       {/* Confirmation Dialog */}
       {deleteId && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-surface p-xl rounded-xl w-full max-w-sm shadow-xl border border-outline-variant/30 animate-in zoom-in-95">
+          <div className="bg-surface p-xl rounded-xl w-full max-w-2xl shadow-xl border border-outline-variant/30 animate-in zoom-in-95">
             <div className="flex flex-col items-center text-center gap-4">
               <div className="w-12 h-12 rounded-full bg-error/10 text-error flex items-center justify-center">
                 <span className="material-symbols-outlined text-3xl">warning</span>

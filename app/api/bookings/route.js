@@ -5,7 +5,7 @@ import { withErrorHandler } from '../../../src/middleware/errorHandler';
 
 export const GET = withErrorHandler(async () => {
   await connectToDatabase();
-  const bookings = await Booking.find({});
+  const bookings = await Booking.find({}).populate('roomId');
   return successResponse(bookings);
 });
 

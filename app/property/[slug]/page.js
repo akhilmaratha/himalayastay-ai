@@ -10,6 +10,40 @@ export default function PropertyDetail() {
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  const [checkIn, setCheckIn] = useState('');
+  const [checkOut, setCheckOut] = useState('');
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const [bookingMessage, setBookingMessage] = useState('');
+
+  const handleReserve = async () => {
+    if (!checkIn || !checkOut) {
+      setBookingMessage("Please select dates");
+      return;
+    }
+    setBookingLoading(true);
+    setBookingMessage('');
+    try {
+      const res = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          roomId: property._id || property.id || slug,
+          user: 'Guest User',
+          dates: `${checkIn} to ${checkOut}`
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || data.message || 'Failed to reserve');
+      setBookingMessage('Success! Reservation confirmed.');
+      setCheckIn('');
+      setCheckOut('');
+    } catch (err) {
+      setBookingMessage(err.message || 'Error occurred');
+    } finally {
+      setBookingLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!slug) return;
@@ -124,8 +158,41 @@ export default function PropertyDetail() {
                 <span className="font-body-md text-on-surface-variant mb-1">/ night</span>
               </div>
               
-              <button className="w-full py-4 bg-primary text-on-primary rounded-xl font-label-lg hover:bg-primary/90 transition-colors mb-4">
-                Reserve
+              <div className="flex flex-col gap-4 mb-6">
+                <div className="flex flex-col gap-2">
+                  <label className="font-label-sm text-on-surface-variant">Check-in</label>
+                  <input 
+                    type="date" 
+                    value={checkIn} 
+                    onChange={(e) => setCheckIn(e.target.value)} 
+                    className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface focus:border-primary outline-none" 
+                    min={new Date().toISOString().split('T')[0]} 
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="font-label-sm text-on-surface-variant">Check-out</label>
+                  <input 
+                    type="date" 
+                    value={checkOut} 
+                    onChange={(e) => setCheckOut(e.target.value)} 
+                    className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface focus:border-primary outline-none" 
+                    min={checkIn || new Date().toISOString().split('T')[0]} 
+                  />
+                </div>
+              </div>
+
+              {bookingMessage && (
+                <div className={`p-3 mb-4 rounded-lg text-sm ${bookingMessage.includes('Success') ? 'bg-primary/10 text-primary' : 'bg-red-500/10 text-red-500'}`}>
+                  {bookingMessage}
+                </div>
+              )}
+              
+              <button 
+                onClick={handleReserve}
+                disabled={bookingLoading || !checkIn || !checkOut}
+                className="w-full py-4 bg-primary text-on-primary rounded-xl font-label-lg hover:bg-primary/90 transition-colors mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {bookingLoading ? 'Reserving...' : 'Reserve'}
               </button>
               
               <div className="text-center">

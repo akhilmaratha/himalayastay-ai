@@ -32,7 +32,7 @@ export default function GuestsPage() {
               visits: 0,
               lastStay: booking.dates || 'N/A',
               bookings: [],
-              avatar: \`https://ui-avatars.com/api/?name=\${encodeURIComponent(name)}&background=f0eded&color=173124\`
+              avatar: `https://ui-avatars.com/api/?name=\${encodeURIComponent(name)}&background=f0eded&color=173124`
             };
           }
           guestMap[name].visits += 1;
@@ -62,7 +62,7 @@ export default function GuestsPage() {
   return (
     <>
       <style dangerouslySetInnerHTML={{
-        __html: \`
+        __html: `
         .ambient-shadow-1 {
             box-shadow: 0 4px 12px rgba(45, 71, 57, 0.02);
         }
@@ -79,7 +79,7 @@ export default function GuestsPage() {
             from { opacity: 0; transform: scale(0.98); }
             to { opacity: 1; transform: scale(1); }
         }
-      \`}} />
+      `}} />
       <div className="max-w-container-max mx-auto px-xl">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-xl gap-6">
@@ -208,7 +208,7 @@ export default function GuestsPage() {
                   <h2 className="font-display-md text-display-md text-on-surface leading-tight">{selectedGuest.name}</h2>
                   <p className="font-body-md text-body-md text-on-surface-variant flex items-center gap-2 mt-1">
                     <span className="material-symbols-outlined text-[16px] text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                    {selectedGuest.visits > 1 ? \`Returning Guest · \${selectedGuest.visits} Stays\` : 'Guest · 1 Stay'}
+                    {selectedGuest.visits > 1 ? `Returning Guest · ${selectedGuest.visits} Stays` : 'Guest · 1 Stay'}
                   </p>
                 </div>
               </div>

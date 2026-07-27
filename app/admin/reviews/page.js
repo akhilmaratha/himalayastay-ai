@@ -281,7 +281,7 @@ export default function ReviewsPage() {
             <div className="py-20 flex flex-col items-center justify-center text-center text-on-surface-variant bg-surface rounded-xl border border-[#E5E0DA] shadow-sm">
               <span className="material-symbols-outlined text-6xl text-outline-variant/50 mb-4">forum</span>
               <p className="font-display-md text-display-md text-primary mb-2">No Reviews Yet</p>
-              <p className="text-body-md max-w-sm">When guests leave feedback about their stay, it will appear here.</p>
+              <p className="text-body-md max-w-2xl">When guests leave feedback about their stay, it will appear here.</p>
               <button onClick={openAddModal} className="mt-6 px-6 py-2 bg-primary text-on-primary rounded-lg shadow-sm">
                 Add Review
               </button>
