@@ -21,8 +21,8 @@ export default function RootLayout({ children }) {
       <body className="bg-background text-on-background font-body-md antialiased selection:bg-primary-fixed selection:text-primary min-h-full flex flex-col">
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="light"
+          enableSystem={false}
           disableTransitionOnChange
         >
           <NavigationWrapper>
