@@ -13,7 +13,7 @@ const loginSchema = z.object({
 });
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'fallback_secret_for_development_only'
+  process.env.JWT_SECRET || ''
 );
 
 export async function POST(request) {

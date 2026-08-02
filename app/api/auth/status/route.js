@@ -3,7 +3,7 @@ import { jwtVerify } from 'jose';
 import { getToken } from 'next-auth/jwt';
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'fallback_secret_for_development_only'
+  process.env.JWT_SECRET || ''
 );
 
 export async function GET(request) {

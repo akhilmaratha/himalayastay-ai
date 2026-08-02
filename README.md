@@ -130,7 +130,7 @@ Create a `.env.local` file in the project root.
 Example:
 
 ```env
-NEXT_PUBLIC_APP_NAME=HimalayaStay AI
+APP_NAME=HimalayaStay AI
 ```
 
 ### Run Development Server
@@ -139,11 +139,7 @@ NEXT_PUBLIC_APP_NAME=HimalayaStay AI
 npm run dev
 ```
 
-Application will be available at:
-
-```text
-http://localhost:3000
-```
+Application will be available locally.
 
 ---
 
